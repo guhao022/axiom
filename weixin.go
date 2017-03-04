@@ -26,9 +26,6 @@ type weixin struct {
 }
 
 func NewWeiChat(bot *Robot) *WeiChat {
-	wx := &weixin{
-
-	}
 	return &WeiChat{
 		bot: bot,
 	}
