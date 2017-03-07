@@ -1,7 +1,7 @@
 package axiom
 
 type Message struct {
-	Id   int
+	Id   string
 	User string
 	Text string
 }
