@@ -14,6 +14,10 @@ import (
 	"runtime"
 	"encoding/xml"
 	"strconv"
+	"strings"
+	"math"
+	"math/rand"
+	"net/http/cookiejar"
 )
 
 const (
@@ -49,7 +53,8 @@ type BaseRequest struct {
 	//
 	Uin int
 	Sid string
-
+	Skey string
+	DeviceID string
 }
 
 func NewWeiChat(bot *Robot, qr_code_path string) *WeiChat {
@@ -71,7 +76,6 @@ func (w *WeiChat) getUUID() bool {
 		"fun": "new",
 		"lang": "zh_CN",
 		"_": time.Now().Unix(),
-
 	}
 
 	data, err := w.httpPost(urlstr, params)
@@ -89,7 +93,7 @@ func (w *WeiChat) getUUID() bool {
 }
 
 // 第二步获取二维码
-func (w *WeiChat) getQRCode() bool {
+func (w *WeiChat) getQRcode() bool {
 	url := "https://login.weixin.qq.com/qrcode/" + w.wx.uuid
 	params := map[string]interface{} {
 		"t": "webwx",
@@ -170,8 +174,8 @@ func (w *WeiChat) waitForLogin(tip int) bool {
 	return false
 }
 
-// 第四步，登录获取Cookie
-func (w *WeiChat) login(args ...interface{}) bool {
+// 第四步，登录获取Cookie（获取xml中的 skey, wxsid, wxuin, pass_ticket）
+func (w *WeiChat) login() bool {
 	data, _ := w.httpGet(w.wx.redirect_uri, "")
 
 	type result struct {
@@ -191,11 +195,324 @@ func (w *WeiChat) login(args ...interface{}) bool {
 	w.wx.uin = v.Wxuin
 	w.wx.pass_ticket = v.Pass_ticket
 	w.wx.BaseRequest = make(map[string]interface{})
-	w.wx.BaseRequest["Uin"], _ = strconv.Atoi(v.Wxuin)
-	w.wx.BaseRequest["Sid"] = v.Wxsid
-	w.wx.BaseRequest["Skey"] = v.Skey
-	w.wx.BaseRequest["DeviceID"] = w.wx.device_id
+	w.wx.BaseRequest.Uin, _ = strconv.Atoi(v.Wxuin)
+	w.wx.BaseRequest.Sid = v.Wxsid
+	w.wx.BaseRequest.Skey = v.Skey
+	w.wx.BaseRequest.DeviceID = w.wx.device_id
 	return true
+}
+
+// 第五步，初始化微信（获取 SyncKey, User 后面的消息监听用）
+func (w *WeiChat) webWXInit() bool {
+	url := fmt.Sprintf("%s/webwxinit?pass_ticket=%s&skey=%s&r=%s", w.wx.base_uri, w.wx.pass_ticket, w.wx.skey, time.Now().Unix())
+	params := map[string]interface{} {
+		"BaseRequest":w.wx.BaseRequest,
+	}
+
+	res, err := w.httpPost(url, params)
+	if err != nil {
+		return false
+	}
+	//log
+	//ioutil.WriteFile("tmp.txt", []byte(res), 777)
+	//log
+
+	var data = make(map[string]interface{})
+	err = json.Unmarshal(res, data)
+	if err != nil {
+		//panic("初始化微信，解析失败：" + err)
+		return false
+	}
+
+	w.wx.User = data["User"].(map[string]interface{})
+	w.wx.SyncKey = data["SyncKey"].(map[string]interface{})
+
+	w._setsynckey()
+
+	retCode := data["BaseResponse"].(map[string]interface{})["Ret"].(int)
+	return retCode == 0
+}
+
+func (w *WeiChat) _setsynckey() {
+	keys := []string{}
+	for _, keyVal := range w.wx.SyncKey["List"].([]interface{}) {
+		key := strconv.Itoa(int(keyVal.(map[string]interface{})["Key"].(int)))
+		value := strconv.Itoa(int(keyVal.(map[string]interface{})["Val"].(int)))
+		keys = append(keys, key+"_"+value)
+	}
+	w.wx.synckey = strings.Join(keys, "|")
+}
+
+// 第六步，开启微信状态通知
+func (w *WeiChat) wxStatusNotify() {
+	url := fmt.Sprintf("%s/webwxstatusnotify?lang=zh_CN&pass_ticket=%s", w.wx.base_uri, w.wx.pass_ticket)
+	params := map[string]interface{}{
+		"BaseRequest": w.wx.BaseRequest,
+		"Code": 3,
+		"FromUserName": w.wx.User["UserName"],
+		"ToUserName": w.wx.User["UserName"],
+		"ClientMsgId": time.Now().Unix(),
+	}
+
+	res, err := w.httpPost(url, params)
+	if err != nil {
+		return false
+	}
+
+	var data = make(map[string]interface{})
+	err = json.Unmarshal(res, data)
+	if err != nil {
+		//panic("初始化微信，解析失败：" + err)
+		return false
+	}
+
+	retCode := data["BaseResponse"].(map[string]interface{})["Ret"].(int)
+	return retCode == 0
+}
+
+// 请求群组列表
+func (w *WeiChat) webGetChatRoomMember(chatroomId string) (map[string]string, error) {
+	url := fmt.Sprintf("%s/webwxbatchgetcontact?pass_ticket=%s&skey=%s&r=%s", w.wx.base_uri, w.wx.pass_ticket, w.wx.skey, time.Now().Unix())
+
+	params := make(map[string]interface{})
+	params["BaseRequest"] = w.wx.BaseRequest
+	params["Count"] = 1
+	params["List"] = []map[string]string{}
+	l := []map[string]string{}
+	params["List"] = append(l, map[string]string{
+		"UserName":   chatroomId,
+		"ChatRoomId": "",
+	})
+
+	members := []string{}
+	stats := make(map[string]string)
+	res, err := w.httpPost(url, params)
+	if err != nil {
+		return stats, err
+	}
+
+	var data = make(map[string]interface{})
+	err = json.Unmarshal(res, data)
+	if err != nil {
+		//panic("初始化微信，解析失败：" + err)
+		return data, err
+	}
+
+	RoomContactList := data["ContactList"].([]interface{})[0].(map[string]interface{})["MemberList"]
+	man := 0
+	woman := 0
+	for _, v := range RoomContactList.([]interface{}) {
+		if m, ok := v.([]interface{}); ok {
+			for _, s := range m {
+				members = append(members, s.(map[string]interface{})["UserName"].(string))
+			}
+		} else {
+			members = append(members, v.(map[string]interface{})["UserName"].(string))
+		}
+	}
+	url = fmt.Sprintf("%s/webwxbatchgetcontact?pass_ticket=%s&skey=%s&r=%s", w.wx.base_uri, w.wx.pass_ticket, w.wx.skey, time.Now().Unix())
+	length := 50
+
+	mnum := len(members)
+	block := int(math.Ceil(float64(mnum) / float64(length)))
+	k := 0
+	for k < block {
+		offset := k * length
+		var l int
+		if offset+length > mnum {
+			l = mnum
+		} else {
+			l = offset + length
+		}
+		blockmembers := members[offset:l]
+		params := make(map[string]interface{})
+		params["BaseRequest"] = w.wx.BaseRequest
+		params["Count"] = len(blockmembers)
+		blockmemberslist := []map[string]string{}
+		for _, g := range blockmembers {
+			blockmemberslist = append(blockmemberslist, map[string]string{
+				"UserName":        g,
+				"EncryChatRoomId": chatroomId,
+			})
+		}
+		params["List"] = blockmemberslist
+
+		dic, err := w.httpPost(url, params)
+		if err == nil {
+			userlist := make(map[string]interface{})
+			err = json.Unmarshal(dic, userlist)
+			if err == nil {
+				for _, u := range userlist["ContactList"].([]interface{}) {
+					if u.(map[string]interface{})["Sex"].(int) == 1 {
+						man++
+					} else if u.(map[string]interface{})["Sex"].(int) == 2 {
+						woman++
+					}
+				}
+			}
+		}
+		k++
+	}
+	stats = map[string]string{
+		"woman": strconv.Itoa(woman),
+		"man":   strconv.Itoa(man),
+	}
+	return stats, nil
+}
+
+// 消息检查
+func (w *WeiChat) syncCheck() (string, string) {
+	urlstr := fmt.Sprintf("https://%s/cgi-bin/mmwebwx-bin/synccheck", w.wx.syncHost)
+	params := make(map[string]interface{})
+	params["r"] = time.Now().Unix()
+	params["sid"] = w.wx.sid
+	params["uin"] = w.wx.uin
+	params["skey"] = w.wx.skey
+	params["deviceid"] = w.wx.device_id
+	params["synckey"] = w.wx.synckey
+	params["_"] = time.Now().Unix()
+
+	data, _ := w.httpGet(urlstr, params)
+	reg := regexp.MustCompile(`window.synccheck={retcode:"(\d+)",selector:"(\d+)"}`)
+	find := reg.FindStringSubmatch(data)
+	if len(find) > 2 {
+		retcode := find[1]
+		selector := find[2]
+		return retcode, selector
+	} else {
+		return "9999", "0"
+	}
+}
+
+// 同步线路测试
+func (w *WeiChat) testsynccheck() bool {
+	SyncHost := []string{
+		"webpush.wx.qq.com",
+		"webpush2.wx.qq.com",
+		"webpush.wechat.com",
+		"webpush1.wechat.com",
+		"webpush2.wechat.com",
+		"webpush1.wechatapp.com",
+		"webpush.wechatapp.com",
+	}
+	for _, host := range SyncHost {
+		w.wx.syncHost = host
+		retcode, _ := w.syncCheck()
+		if retcode == "0" {
+			return true
+		}
+	}
+	return false
+}
+
+// 获取新消息
+func (w *WeiChat) webwxsync() interface{} {
+	url := fmt.Sprintf("%s/webwxsync?sid=%s&skey=%s&pass_ticket=%s", w.wx.base_uri, w.wx.sid, w.wx.skey, w.wx.pass_ticket)
+	params := make(map[string]interface{})
+	params["BaseRequest"] = w.wx.BaseRequest
+	params["SyncKey"] = w.wx.SyncKey
+	params["rr"] = ^int(time.Now().Unix())
+	res, err := w.httpPost(url, params)
+	if err != nil{
+		return false
+	}
+
+	var data = make(map[string]interface{})
+	err = json.Unmarshal(res, data)
+	if err != nil {
+		//panic("初始化微信，解析失败：" + err)
+		return data, err
+	}
+
+	retCode := data["BaseResponse"].(map[string]interface{})["Ret"].(int)
+	if retCode == 0 {
+		w.wx.SyncKey = data["SyncKey"].(map[string]interface{})
+		w._setsynckey()
+	}
+	return data
+}
+
+// 发送消息
+func (w *WeiChat) webWXsendMsg(message string, toUseNname string) bool {
+	url := fmt.Sprintf("%s/webwxsendmsg?pass_ticket=%s", w.wx.base_uri, w.wx.pass_ticket)
+
+	clientMsgId := time.Now().Unix() + strconv.Itoa(rand.Int())[3:7]
+
+	params := make(map[string]interface{})
+	params["BaseRequest"] = w.wx.BaseRequest
+
+	msg := make(map[string]interface{})
+	msg["Type"] = 1
+	msg["Content"] = message
+	msg["FromUserName"] = w.wx.User["UserName"]
+	msg["ToUserName"] = toUseNname
+	msg["LocalID"] = clientMsgId
+	msg["ClientMsgId"] = clientMsgId
+	params["Msg"] = msg
+
+	_, err := w.httpPost(url, params)
+	if err != nil {
+		return false
+	} else {
+		return true
+	}
+}
+
+// 处理消息
+func (w *WeiChat) handleMsg(r interface{}) {
+	myNickName := w.wx.User["NickName"].(string)
+	for _, msg := range r.(map[string]interface{})["AddMsgList"].([]interface{}) {
+		// fmt.Println("[*] 你有新的消息，请注意查收")
+		// msg = msg.(map[string]interface{})
+		msgType := msg.(map[string]interface{})["MsgType"].(int)
+		fromUserName := msg.(map[string]interface{})["FromUserName"].(string)
+		// name = self.getUserRemarkName(msg['FromUserName'])
+		content := msg.(map[string]interface{})["Content"].(string)
+		content = strings.Replace(content, "&lt;", "<", -1)
+		content = strings.Replace(content, "&gt;", ">", -1)
+		content = strings.Replace(content, " ", " ", 1)
+		// msgid := msg.(map[string]interface{})["MsgId"].(int)
+		if msgType == 1 {
+			var ans string
+			var err error
+			if fromUserName[:2] == "@@" {
+				CLog("# * # 收到群消息：" + content + "|0045")
+				contentSlice := strings.Split(content, ":<br/>")
+				// people := contentSlice[0]
+				content = contentSlice[1]
+				if strings.Contains(content, "@"+myNickName) {
+					realcontent := strings.TrimSpace(strings.Replace(content, "@"+myNickName, "", 1))
+					CLog("# * # 收到群消息：" + realcontent + "|0046")
+					if realcontent == "统计人数" {
+						stat, err := w.webGetChatRoomMember(fromUserName)
+						if err == nil {
+							ans = "据统计群里男生" + stat["man"] + "人，女生" + stat["woman"] + "人 (ó㉨ò)"
+						}
+					}
+				}
+			}
+
+			if err != nil {
+				CLog("[ ERRO ] " + err)
+			} else if ans != "" {
+				go w.webWXsendMsg(ans, fromUserName)
+			}
+		} else if msgType == 51 {
+			CLog("# * # 成功截获微信初始化消息")
+		}
+	}
+}
+
+func (w *WeiChat) _init() {
+	gCookieJar, _ := cookiejar.New(nil)
+	httpclient := http.Client{
+		CheckRedirect: nil,
+		Jar:           gCookieJar,
+	}
+	w.wx.http_client = &httpclient
+	rand.Seed(time.Now().Unix())
+	str := strconv.Itoa(rand.Int())
+	w.wx.device_id = "e" + str[2:17]
 }
 
 // get 方法
@@ -259,20 +576,86 @@ func (w *WeiChat) httpPost(url string, params map[string]interface{}) ([]byte, e
 	return body, nil
 }
 
+func (w *WeiChat) _run(desc string, f func(...interface{}) bool, args ...interface{}) {
+	start := time.Now().UnixNano()
+	CLog(desc)
+	var result bool
+	if len(args) > 1 {
+		result = f(args)
+	} else if len(args) == 1 {
+		result = f(args[0])
+	} else {
+		result = f()
+	}
+	useTime := fmt.Sprintf("%.5f", (float64(time.Now().UnixNano()-start) / 1000000000))
+	if result {
+		CLog("@@ 成功 @@, 用时 < " + useTime + " > 秒")
+	} else {
+		CLog("[ 失败 ] \n 退出程序")
+		os.Exit(1)
+	}
+}
+
+
 
 // 初始化
 func (w *WeiChat) Construct() error {
+	CLog("# * # 微信网页版... 开动")
+	w._init()
+	w._run("# * # 正在获取 uuid ... ", w.getUUID)
+	w._run("# * # 正在获取 二维码 ... ", w.getQRcode)
+	CLog("# * # 请使用微信扫描二维码以登录 ... ")
+	for {
+		if w.waitForLogin(1) == false {
+			continue
+		}
+		CLog("# * # 请在手机上点击确认以登录 ... ")
+		if w.waitForLogin(0) == false {
+			continue
+		}
+		break
+	}
+	w._run("# * # 正在登录 ... ", w.login)
+	w._run("# * # 微信初始化 ... ", w.webWXInit)
+	w._run("# * # 开启状态通知 ... ", w.wxStatusNotify)
+	w._run("# * # 进行同步线路测试 ... ", w.testsynccheck)
+
 	return nil
 }
 
 // 解析
 func (w *WeiChat) Process() error {
 
-	return nil
+	for {
+		retcode, selector := w.syncCheck()
+		if retcode == "1100" {
+			CLog("# * # 你在手机上登出了微信，债见")
+			break
+		} else if retcode == "1101" {
+			CLog("# * # 你在其他地方登录了 WEB 版微信，债见")
+			break
+		} else if retcode == "0" {
+			if selector == "2" {
+				r := w.webwxsync()
+				switch r.(type) {
+				case bool:
+				default:
+					w.handleMsg(r)
+				}
+			} else if selector == "0" {
+				time.Sleep(1)
+			} else if selector == "6" || selector == "4" {
+				w.webwxsync()
+				time.Sleep(1)
+			}
+		}
+	}
 
+	return nil
 }
 
 // 回应
 func (w *WeiChat) Reply(msg Message, message string) error {
+
 	return nil
 }
