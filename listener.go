@@ -42,5 +42,6 @@ func (m *Matcher) HandleMessage(message Message) {
 			}
 			h.HandlerFunc(c)
 		}
+		continue
 	}
 }
