@@ -2,6 +2,7 @@ package axiom
 
 type Message struct {
 	Id   string
-	User string
+	ToUserName string
+	ToAXID string
 	Text string
 }

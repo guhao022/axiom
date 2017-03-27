@@ -42,7 +42,7 @@ func (s *Shell) Process() error {
 		}
 
 		v := Message{
-			User: u.Username,
+			ToUserName: u.Username,
 			Text: line,
 		}
 		s.bot.ReceiveMessage(v)
