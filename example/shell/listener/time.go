@@ -1,8 +1,8 @@
 package listener
 
 import (
-	"time"
 	"axiom"
+	"time"
 )
 
 type TimeListener struct{}
@@ -15,7 +15,7 @@ func (t *TimeListener) Handle() []*axiom.Listener {
 			HandlerFunc: func(c *axiom.Context) {
 				layout := "2006-01-02 15:04:05"
 				t := time.Now()
-				c.Reply(c.Message.User + " > 现在时间: " + t.Format(layout))
+				c.Reply(c.Message.ToUserName + " > 现在时间: " + t.Format(layout))
 			},
 		},
 	}

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"axiom"
 	"./listener"
+	"axiom"
 )
 
 func main() {

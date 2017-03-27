@@ -3,13 +3,13 @@ package axiom
 import (
 	"bufio"
 	"os"
-	"strings"
 	"os/user"
+	"strings"
 )
 
 // 默认实现shell适配器
 type Shell struct {
-	bot     *Robot
+	bot *Robot
 }
 
 func NewShell(bot *Robot) *Shell {
@@ -43,7 +43,7 @@ func (s *Shell) Process() error {
 
 		v := Message{
 			ToUserName: u.Username,
-			Text: line,
+			Text:       line,
 		}
 		s.bot.ReceiveMessage(v)
 	}
@@ -57,4 +57,3 @@ func (s *Shell) Reply(msg Message, message string) error {
 	os.Stdout.WriteString(message + "\n")
 	return nil
 }
-
