@@ -42,8 +42,8 @@ func (s *Shell) Process() error {
 		}
 
 		v := Message{
-			ToUserName: u.Username,
-			Text:       line,
+			ToUser:	u.Username,
+			Text:	line,
 		}
 		s.bot.ReceiveMessage(v)
 	}
