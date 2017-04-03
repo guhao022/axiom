@@ -46,6 +46,7 @@ func (s *Shell) Process() error {
 			Text:	line,
 		}
 		s.bot.ReceiveMessage(v)
+		continue
 	}
 
 	return nil
