@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	b := axiom.New("axiom")
+	b := axiom.New("Axiom")
 
 	b.AddAdapter(axiom.NewShell(b))
 
