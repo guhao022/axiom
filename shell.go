@@ -1,6 +1,6 @@
 package axiom
 
-import (
+/*import (
 	"bufio"
 	"os"
 	"os/user"
@@ -57,4 +57,4 @@ func (s *Shell) Reply(msg Message, message string) error {
 
 	os.Stdout.WriteString(message + "\n")
 	return nil
-}
+}*/
