@@ -19,6 +19,7 @@ func (h *history) Init() *history {
 	//id := NewSafeID()
 	// 获取储存的ID
 	// 生成新的ID
+	return h
 }
 
 func (h *history) Insert(id int64, msg string) error {
