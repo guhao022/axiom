@@ -1,10 +1,13 @@
-package idworker
+package axiom
 
 import (
-	"errors"
-	"sync"
 	"time"
+	"sync"
 )
+
+type IDGenerator interface {
+	Next() int64
+}
 
 const (
 	CWorkerIdBits  = 10 // Num of WorkerId Bits
@@ -19,8 +22,7 @@ const (
 
 var CEpoch = int64(time.Millisecond)
 
-// IdWorker Struct
-type IdWorker struct {
+type IdGen struct {
 	workerId      int64
 	lastTimeStamp int64
 	sequence      int64
@@ -28,20 +30,20 @@ type IdWorker struct {
 	lock          *sync.Mutex
 }
 
-// NewIdWorker Func: Generate NewIdWorker with Given workerid
-func NewIdWorker(workerid int64) (iw *IdWorker, err error) {
-	iw = new(IdWorker)
+func NewID(workerid int64) *IdGen {
+	ig := new(IdGen)
 
-	iw.maxWorkerId = getMaxWorkerId()
+	ig.maxWorkerId = getMaxWorkerId()
 
-	if workerid > iw.maxWorkerId || workerid < 0 {
-		return nil, errors.New("worker not fit")
+	if workerid > ig.maxWorkerId || workerid < 0 {
+		panic("idgenerator worker not fit")
+		return nil
 	}
-	iw.workerId = workerid
-	iw.lastTimeStamp = -1
-	iw.sequence = 0
-	iw.lock = new(sync.Mutex)
-	return iw, nil
+	ig.workerId = workerid
+	ig.lastTimeStamp = -1
+	ig.sequence = 0
+	ig.lock = new(sync.Mutex)
+	return ig
 }
 
 func getMaxWorkerId() int64 {
@@ -53,11 +55,11 @@ func getSequenceMask() int64 {
 }
 
 // return in ms
-func (iw *IdWorker) timeGen() int64 {
+func (iw *IdGen) timeGen() int64 {
 	return time.Now().UnixNano() / 1000 / 1000
 }
 
-func (iw *IdWorker) timeReGen(last int64) int64 {
+func (iw *IdGen) timeReGen(last int64) int64 {
 	ts := time.Now().UnixNano()
 	for {
 		if ts < last {
@@ -69,27 +71,26 @@ func (iw *IdWorker) timeReGen(last int64) int64 {
 	return ts
 }
 
-// NewId Func: Generate next id
-func (iw *IdWorker) NextId() (ts int64, err error) {
-	iw.lock.Lock()
-	defer iw.lock.Unlock()
-	ts = iw.timeGen()
-	if ts == iw.lastTimeStamp {
-		iw.sequence = (iw.sequence + 1) & CSequenceMask
-		if iw.sequence == 0 {
-			ts = iw.timeReGen(ts)
+func (ig *IdGen) Next() int64 {
+	ig.lock.Lock()
+	defer ig.lock.Unlock()
+	ts := ig.timeGen()
+	if ts == ig.lastTimeStamp {
+		ig.sequence = (ig.sequence + 1) & CSequenceMask
+		if ig.sequence == 0 {
+			ts = ig.timeReGen(ts)
 		}
 	} else {
-		iw.sequence = 0
+		ig.sequence = 0
 	}
 
-	if ts < iw.lastTimeStamp {
-		err = errors.New("Clock moved backwards, Refuse gen id")
-		return 0, err
+	if ts < ig.lastTimeStamp {
+		panic("Clock moved backwards, Refuse gen id")
+		return 0
 	}
-	iw.lastTimeStamp = ts
-	ts = (ts-CEpoch)<<CTimeStampShift | iw.workerId<<CWorkerIdShift | iw.sequence
-	return ts, nil
+	ig.lastTimeStamp = ts
+	ts = (ts-CEpoch)<<CTimeStampShift | ig.workerId<<CWorkerIdShift | ig.sequence
+	return ts
 }
 
 // ParseId Func: reverse uid to timestamp, workid, seq
