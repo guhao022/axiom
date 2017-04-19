@@ -20,6 +20,7 @@ type User struct {
 	Presence          Presence `json:"presence"`            // 线上信息
 }
 
+// 在线信息
 type Presence struct {
 	Online          bool     `json:"online,omitempty"`           // 是否在线
 	AutoAway        bool     `json:"auto_away,omitempty"`        // 是否自动离线
