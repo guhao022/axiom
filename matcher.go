@@ -7,6 +7,12 @@ type Matcher interface {
 	HandleMessage(msg Message) error // 处理消息
 }
 
+func NewMatcher(bot *Robot) Matcher {
+	return &matcher{
+		Bot: bot,
+	}
+}
+
 type matcher struct {
 	Bot      *Robot
 	handlers []*Listener
