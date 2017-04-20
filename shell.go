@@ -1,33 +1,35 @@
 package axiom
 
-/*import (
+import (
 	"bufio"
 	"os"
-	"os/user"
 	"strings"
 )
 
+const DEFAULT_NAME = "shell"
+
 // 默认实现shell适配器
 type Shell struct {
-	bot *Robot
+	name string
+	bot  *Robot
 }
 
 func NewShell(bot *Robot) *Shell {
-
 	return &Shell{
-		bot: bot,
+		name: DEFAULT_NAME,
+		bot:  bot,
 	}
 }
 
-func (s *Shell) Construct() error {
+func (s *Shell) Prepare() error {
 	return nil
 }
 
+func (s *Shell) GetName() string {
+	return s.name
+}
+
 func (s *Shell) Process() error {
-	u, err := user.Current()
-	if err != nil {
-		return err
-	}
 
 	for {
 		scanner := bufio.NewScanner(os.Stdin)
@@ -41,10 +43,7 @@ func (s *Shell) Process() error {
 			os.Stdout.WriteString("GoodBye!")
 		}
 
-		v := Message{
-			ToUser:	u.Username,
-			Text:	line,
-		}
+		v := NewMessage(1, line)
 		s.bot.ReceiveMessage(v)
 		continue
 	}
@@ -57,4 +56,4 @@ func (s *Shell) Reply(msg Message, message string) error {
 
 	os.Stdout.WriteString(message + "\n")
 	return nil
-}*/
+}

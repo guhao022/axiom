@@ -1,8 +1,8 @@
 package axiom
 
 import (
-	"time"
 	"sync"
+	"time"
 )
 
 type IDGenerator interface {

@@ -15,7 +15,7 @@ func (t *TimeListener) Handle() []*axiom.Listener {
 			HandlerFunc: func(c *axiom.Context) {
 				layout := "2006-01-02 15:04:05"
 				t := time.Now()
-				c.Reply(c.Message.ToUser + " > 现在时间: " + t.Format(layout))
+				c.Reply(" > 现在时间: " + t.Format(layout))
 			},
 		},
 	}

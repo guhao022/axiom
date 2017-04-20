@@ -1,9 +1,9 @@
 package axiom
 
 import (
-	"testing"
 	"fmt"
 	"runtime"
+	"testing"
 )
 
 func TestIdGen_Next(t *testing.T) {

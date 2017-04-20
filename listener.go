@@ -1,9 +1,13 @@
 package axiom
 
 // 监听者
-type Listener interface {
+type ListenEvent interface {
 	Handle() []*Listener
 }
 
+type Listener struct {
+	Regex       string
+	HandlerFunc ListenerFunc
+}
 
-
+type ListenerFunc func(c *Context)

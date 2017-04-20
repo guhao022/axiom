@@ -1,7 +1,7 @@
 package main
 
 import (
-	"./listener"
+	"github.com/num5/axiom/example/shell/listener"
 	"axiom"
 )
 
@@ -12,5 +12,5 @@ func main() {
 
 	b.Register(&listener.TimeListener{})
 
-	b.Start()
+	b.Run()
 }
