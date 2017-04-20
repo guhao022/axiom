@@ -38,9 +38,9 @@ func (h history) Insert(msg Message) error {
 
 	if len(h.Message) <= 0 {
 		h.Message[0] = msg
-		h.Count = 100
+		h.Count = DEFAULT_HISTORY_COUNT
 		h.LastCall = time.Now()
-		h.Deadline = 1800
+		h.Deadline = DEFAULT_HISTORY_DEADLINE
 	}
 
 	now := time.Now()
