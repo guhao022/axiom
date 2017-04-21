@@ -1,12 +1,12 @@
 package axiom
 
-import "github.com/num5/loger"
+import "github.com/num5/logger"
 
-var log *loger.Log
+var log *logger.Log
 
 func init() {
 	// 初始化
-	log = loger.NewLog(1000)
+	log = logger.NewLog(1000)
 
 	// 设置log级别
 	log.SetLevel("Debug")
