@@ -86,10 +86,6 @@ func (b *Robot) Register(listener ...ListenEvent) error {
 
 // ReceiveMessage 将适配器接收的消息传递给Handler
 func (b *Robot) ReceiveMessage(message Message) error {
-	err := message.History.Insert(message)
-	if err != nil {
-		return err
-	}
 	return b.matcher.HandleMessage(message)
 }
 

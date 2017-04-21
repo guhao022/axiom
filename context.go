@@ -1,6 +1,8 @@
 package axiom
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Context struct {
 	Matches []string

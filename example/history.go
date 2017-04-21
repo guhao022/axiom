@@ -1,9 +1,9 @@
 package axiom
 
 import (
-	"sort"
 	"sync"
 	"time"
+	"sort"
 )
 
 const (
@@ -17,7 +17,7 @@ type history struct {
 	LastCall time.Time     `json:"last_call"`         // 最后消息接收时间
 	Deadline time.Duration `json:"deadline"`          // 过期时间(s)
 
-	lock sync.Mutex
+	lock *sync.Mutex
 }
 
 func (h history) Len() int {
@@ -32,16 +32,21 @@ func (h history) Less(i, j int) bool {
 	return h.Message[i].ID > h.Message[j].ID
 }
 
-func (h history) Insert(msg Message) error {
+func NewHistory(count int) *history {
+	var message []Message
+
+	return &history{
+		Message: message,
+		Count: count,
+		LastCall: time.Now(),
+		Deadline: DEFAULT_HISTORY_DEADLINE,
+		lock: new(sync.Mutex),
+	}
+}
+
+func (h *history) Insert(msg Message) error {
 	h.lock.Lock()
 	defer h.lock.Unlock()
-
-	if len(h.Message) <= 0 {
-		h.Message[0] = msg
-		h.Count = DEFAULT_HISTORY_COUNT
-		h.LastCall = time.Now()
-		h.Deadline = DEFAULT_HISTORY_DEADLINE
-	}
 
 	now := time.Now()
 	subTime := now.Sub(h.LastCall)
@@ -53,7 +58,7 @@ func (h history) Insert(msg Message) error {
 	if len(h.Message) >= h.Count {
 		h.Message = append(h.Message[1:h.Count], msg)
 	} else {
-		h.Message[len(h.Message)] = msg
+		h.Message = append(h.Message, msg)
 	}
 
 	sort.Sort(h)
@@ -61,7 +66,7 @@ func (h history) Insert(msg Message) error {
 	return nil
 }
 
-func (h history) Flush() {
+func (h *history) Flush() {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 
@@ -69,7 +74,7 @@ func (h history) Flush() {
 	h.LastCall = time.Now()
 }
 
-func (h history) gc() {
+func (h *history) gc() {
 	for {
 		h.lock.Lock()
 		now := time.Now()
