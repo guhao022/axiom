@@ -35,7 +35,7 @@ func (b *Robot) AddAdapter(a Adapter) {
 	b.adapter = append(b.adapter, a)
 }
 
-// Start
+// Start，
 func (b *Robot) Run() error {
 
 	if len(b.adapter) <= 0 {
@@ -49,11 +49,14 @@ func (b *Robot) Run() error {
 			return err
 		}
 
-		err = adapter.Process()
+		go func() {
+			err = adapter.Process()
 
-		if err != nil {
-			return err
-		}
+			if err != nil {
+				log.Errorf("[%s] 适配器错误：%v ", adapter.GetName(), err)
+			}
+
+		}()
 	}
 
 	return nil

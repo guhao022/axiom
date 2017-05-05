@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/num5/axiom/example/shell/listener"
 	"axiom"
+	"github.com/num5/axiom/example/shell/listener"
 )
 
 func main() {

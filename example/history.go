@@ -1,9 +1,9 @@
 package axiom
 
 import (
+	"sort"
 	"sync"
 	"time"
-	"sort"
 )
 
 const (
@@ -36,11 +36,11 @@ func NewHistory(count int) *history {
 	var message []Message
 
 	return &history{
-		Message: message,
-		Count: count,
+		Message:  message,
+		Count:    count,
 		LastCall: time.Now(),
 		Deadline: DEFAULT_HISTORY_DEADLINE,
-		lock: new(sync.Mutex),
+		lock:     new(sync.Mutex),
 	}
 }
 

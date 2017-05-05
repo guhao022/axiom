@@ -1,9 +1,9 @@
 package axiom
 
 type Message struct {
-	ID      int64      `json:"id"`      // 消息ID
-	Text    string     `json:"text"`    // 消息内容
-	Adapter []*Adapter `json:"adapter"` // 适配平台
+	ID      int64      `json:"id"`       // 消息ID
+	Text    string     `json:"text"`     // 消息内容
+	Adapter []*Adapter `json:"adapter"`  // 适配平台
 	ReplyTo []string   `json:"reply_to"` // 接收方
 }
 
