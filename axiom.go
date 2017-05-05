@@ -2,11 +2,12 @@ package axiom
 
 import (
 	"errors"
+	"log"
 )
 
 type Robot struct {
 	name     string
-	adapter  []Adapter
+	adapter  Adapter
 	listener []ListenEvent
 	matcher  Matcher
 
@@ -34,7 +35,7 @@ func (b *Robot) SetMatcher(m Matcher) {
 
 // AddAdapter 向Robot中添加适配器
 func (b *Robot) AddAdapter(a Adapter) {
-	b.adapter = append(b.adapter, a)
+	b.adapter = a
 }
 
 // Start，
@@ -44,22 +45,20 @@ func (b *Robot) Run() error {
 		return errors.New("You must add at least one adapter")
 	}
 
-	for _, adapter := range b.adapter {
-		err := adapter.Prepare()
+	go func() {
+		err := b.adapter.Prepare()
 
 		if err != nil {
-			return err
+			log.Printf("[%s] 适配器初始化错误：%v ", b.adapter.GetName(), err)
 		}
 
-		go func() {
-			err = adapter.Process()
+		err = b.adapter.Process()
 
-			if err != nil {
-				log.Errorf("[%s] 适配器错误：%v ", adapter.GetName(), err)
-			}
+		if err != nil {
+			log.Printf("[%s] 适配器处理错误：%v ", b.adapter.GetName(), err)
+		}
 
-		}()
-	}
+	}()
 
 	<- b.done
 
@@ -98,19 +97,14 @@ func (b *Robot) ReceiveMessage(message Message) error {
 
 // Reply 通过适配器回复信息
 func (b *Robot) Reply(m Message, message string) {
-	if m.Adapter == nil {
-		for _, adapter := range b.adapter {
+	err := b.adapter.Reply(m, message)
 
-			err := adapter.Reply(m, message)
-
-			if err != nil {
-				log.Errorf("适配器 [%s] 回复消息失败：%s...", adapter.GetName(), err.Error())
-			}
-		}
+	if err != nil {
+		log.Printf("适配器 [%s] 回复消息失败：%s...", b.adapter.GetName(), err.Error())
 	}
 
 }
 
 func (b *Robot) Stop() {
-	b.done <- true
+	b.done <- false
 }
