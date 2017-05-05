@@ -110,3 +110,7 @@ func (b *Robot) Reply(m Message, message string) {
 	}
 
 }
+
+func (b *Robot) Stop() {
+	b.done <- true
+}
