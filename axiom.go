@@ -41,10 +41,6 @@ func (b *Robot) AddAdapter(a Adapter) {
 // Start，
 func (b *Robot) Run() error {
 
-	if len(b.adapter) <= 0 {
-		return errors.New("You must add at least one adapter")
-	}
-
 	go func() {
 		err := b.adapter.Prepare()
 
