@@ -9,6 +9,8 @@ type Robot struct {
 	adapter  []Adapter
 	listener []ListenEvent
 	matcher  Matcher
+
+	done chan bool
 }
 
 func New(name ...string) *Robot {
@@ -58,6 +60,8 @@ func (b *Robot) Run() error {
 
 		}()
 	}
+
+	<- b.done
 
 	return nil
 }
