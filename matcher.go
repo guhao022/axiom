@@ -44,5 +44,7 @@ func (m *matcher) HandleMessage(message Message) error {
 		continue
 	}
 
+	println(message.ReplyTo[0].(string))
+
 	return nil
 }
