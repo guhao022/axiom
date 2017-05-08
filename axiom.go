@@ -93,6 +93,7 @@ func (b *Robot) ReceiveMessage(message Message) error {
 
 // Reply 通过适配器回复信息
 func (b *Robot) Reply(m Message, message string) {
+	println("aaaaaaaaaaaaa")
 	println(m.ReplyTo[0].(string))
 	err := b.adapter.Reply(m, message)
 
