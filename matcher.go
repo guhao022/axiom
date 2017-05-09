@@ -25,6 +25,9 @@ func (m *matcher) AddHandler(l *Listener) error {
 
 func (m *matcher) HandleMessage(message Message) error {
 	for _, h := range m.handlers {
+
+		println(h.Regex)
+
 		regexp, err := regexp.Compile(h.Regex)
 
 		if err != nil {
@@ -42,7 +45,7 @@ func (m *matcher) HandleMessage(message Message) error {
 			h.HandlerFunc(c)
 
 		}
-		//continue
+		continue
 	}
 
 	return nil
