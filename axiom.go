@@ -3,6 +3,7 @@ package axiom
 import (
 	"errors"
 	"log"
+	"regexp"
 )
 
 type Robot struct {
@@ -63,7 +64,8 @@ func (b *Robot) Run() error {
 
 // ListenFunc 添加自定义ListenerFunc
 func (b *Robot) ListenFunc(regex string, handler ListenerFunc) error {
-	return b.matcher.AddHandler(&Listener{regex, handler})
+	regexp := regexp.MustCompile(regex)
+	return b.matcher.AddHandler(&Listener{regexp, handler})
 }
 
 // Register 为Robot注册处理程序
@@ -79,7 +81,8 @@ func (b *Robot) Register(listener ...ListenEvent) error {
 	for _, l := range listener {
 		handlers := l.Handle()
 		for _, handler := range handlers {
-			return b.matcher.AddHandler(&Listener{handler.Regex, handler.HandlerFunc})
+			regexp := regexp.MustCompile(handler.Regex)
+			return b.matcher.AddHandler(&Listener{regexp, handler.HandlerFunc})
 		}
 	}
 	return nil

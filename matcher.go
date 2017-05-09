@@ -1,7 +1,5 @@
 package axiom
 
-import "regexp"
-
 type Matcher interface {
 	AddHandler(l *Listener) error    // 添加处理程序
 	HandleMessage(msg Message) error // 处理消息
@@ -24,18 +22,11 @@ func (m *matcher) AddHandler(l *Listener) error {
 }
 
 func (m *matcher) HandleMessage(message Message) error {
-	var reg *regexp.Regexp
-	var err error
-
 	for _, h := range m.handlers {
 
-		reg, err = regexp.Compile(h.Regex)
+		matches := h.Regexp.FindStringSubmatch(message.Text)
 
-		if err != nil {
-			panic("regexp err: " + err.Error())
-		}
-
-		matches := reg.FindStringSubmatch(message.Text)
+		println(len(matches))
 
 		if len(matches) > 0 {
 			c := &Context{

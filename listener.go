@@ -1,12 +1,19 @@
 package axiom
 
+import "regexp"
+
 // 监听者
 type ListenEvent interface {
-	Handle() []*Listener
+	Handle() []*ListenerHandler
+}
+
+type ListenerHandler struct {
+	Regex       string
+	HandlerFunc ListenerFunc
 }
 
 type Listener struct {
-	Regex       string
+	Regexp       *regexp.Regexp
 	HandlerFunc ListenerFunc
 }
 
