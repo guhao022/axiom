@@ -19,7 +19,7 @@ func New(name ...string) *Robot {
 
 	b := new(Robot)
 	b.listener = []ListenEvent{}
-	b.matcher = NewMatcher(b)
+	b.matcher = &Matcher{Bot: b}
 
 	if len(name) > 0 {
 		b.name = name[0]
@@ -28,10 +28,6 @@ func New(name ...string) *Robot {
 	}
 
 	return b
-}
-
-func (b *Robot) SetMatcher(m Matcher) {
-	b.matcher = m
 }
 
 // AddAdapter 向Robot中添加适配器
