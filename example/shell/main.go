@@ -2,7 +2,7 @@ package main
 
 import (
 	"axiom"
-	"github.com/num5/axiom/example/shell/listener"
+	"axiom/example/shell/listener"
 )
 
 func main() {

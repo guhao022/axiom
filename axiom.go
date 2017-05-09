@@ -10,7 +10,7 @@ type Robot struct {
 	name     string
 	adapter  Adapter
 	listener []ListenEvent
-	matcher  Matcher
+	matcher  *Matcher
 
 	done chan bool
 }
