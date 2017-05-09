@@ -3,6 +3,7 @@ package axiom
 import (
 	"errors"
 	"log"
+	"regexp"
 )
 
 type Robot struct {
@@ -77,7 +78,6 @@ func (b *Robot) Register(listener ...ListenEvent) error {
 		return errors.New("监听器不能为空")
 	}
 	for _, l := range listener {
-
 		handlers := l.Handle()
 		for _, handler := range handlers {
 			return b.matcher.AddHandler(&Listener{handler.Regex, handler.HandlerFunc})

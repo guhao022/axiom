@@ -24,19 +24,18 @@ func (m *matcher) AddHandler(l *Listener) error {
 }
 
 func (m *matcher) HandleMessage(message Message) error {
+	var reg *regexp.Regexp
+	var err error
+
 	for _, h := range m.handlers {
 
-		println(h.Regex)
-
-		regexp, err := regexp.Compile(h.Regex)
+		reg, err = regexp.Compile(h.Regex)
 
 		if err != nil {
 			panic("regexp err: " + err.Error())
 		}
 
-		matches := regexp.FindStringSubmatch(message.Text)
-
-		println(len(matches))
+		matches := reg.FindStringSubmatch(message.Text)
 
 		if len(matches) > 0 {
 			c := &Context{
