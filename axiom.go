@@ -3,7 +3,6 @@ package axiom
 import (
 	"errors"
 	"log"
-	"regexp"
 )
 
 type Robot struct {
