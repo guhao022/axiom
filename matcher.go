@@ -1,30 +1,37 @@
 package axiom
 
-/*type Matcher interface {
-	AddHandler(l *Listener) error    // 添加处理程序
-	HandleMessage(msg Message) error // 处理消息
-}*/
+import "regexp"
 
-func NewMatcher(bot *Robot) *Matcher {
-	return &Matcher{
+type Matcher interface {
+	AddHandler(*Listener) error
+	HandleMessage(Message) error
+}
+
+func NewMatcher(bot *Robot) Matcher {
+	return &matcher{
 		Bot: bot,
 	}
 }
 
-type Matcher struct {
+type matcher struct {
 	Bot      *Robot
 	handlers []*Listener
 }
 
-func (m *Matcher) AddHandler(l *Listener) error {
+func (m *matcher) AddHandler(l *Listener) error {
 	m.handlers = append(m.handlers, l)
 	return nil
 }
 
-func (m *Matcher) HandleMessage(message Message) error {
-	for _, h := range m.handlers {
+func (m *matcher) HandleMessage(message Message) error {
 
-		matches := h.Regexp.FindStringSubmatch(message.Text)
+	for _, h := range m.handlers {
+		regexp, err := regexp.Compile(h.Regex)
+
+		if err != nil {
+			return err
+		}
+		matches := regexp.FindStringSubmatch(message.Text)
 
 		if len(matches) > 0 {
 			c := &Context{
@@ -33,10 +40,12 @@ func (m *Matcher) HandleMessage(message Message) error {
 				Message: message,
 			}
 			h.HandlerFunc(c)
-
+			return nil
 		}
-		//continue
+
 	}
 
 	return nil
 }
+
+
