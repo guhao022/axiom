@@ -43,9 +43,8 @@ func (m *matcher) HandleMessage(message Message) error {
 				Message: message,
 			}
 			h.HandlerFunc(c)
-
+			continue
 		}
-		continue
 	}
 
 	return nil
