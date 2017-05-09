@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-const DEFAULT_NAME = "shell"
+const DEFAULT_NAME = "Axiom"
 
 // 默认实现shell适配器
 type Shell struct {
@@ -40,7 +40,8 @@ func (s *Shell) Process() error {
 		line = strings.TrimSpace(line)
 
 		if line == "quit" || line == "q" || line == "exit" {
-			os.Stdout.WriteString("GoodBye!")
+			os.Stdout.WriteString("GoodBye!\n")
+			return nil
 		}
 
 		v := NewMessage(1, line)
