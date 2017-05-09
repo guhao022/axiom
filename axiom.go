@@ -42,22 +42,28 @@ func (b *Robot) AddAdapter(a Adapter) {
 // Start，
 func (b *Robot) Run() error {
 
-	go func() {
-		err := b.adapter.Prepare()
+	if b.adapter == nil {
+		return errors.New("You must add at least one adapter")
+	}
 
-		if err != nil {
-			log.Printf("[%s] 适配器初始化错误：%v ", b.adapter.GetName(), err)
-		}
+	err := b.adapter.Prepare()
 
-		err = b.adapter.Process()
+	if err != nil {
+		log.Printf("[%s] 适配器初始化错误：%v ", b.adapter.GetName(), err)
+	}
 
-		if err != nil {
-			log.Printf("[%s] 适配器处理错误：%v ", b.adapter.GetName(), err)
-		}
+	err = b.adapter.Process()
+
+	if err != nil {
+		log.Printf("[%s] 适配器处理错误：%v ", b.adapter.GetName(), err)
+	}
+
+	/*go func() {
+
 
 	}()
 
-	<- b.done
+	<- b.done*/
 
 	return nil
 }

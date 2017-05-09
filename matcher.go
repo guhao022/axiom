@@ -26,8 +26,6 @@ func (m *matcher) HandleMessage(message Message) error {
 
 		matches := h.Regexp.FindStringSubmatch(message.Text)
 
-		println(len(matches))
-
 		if len(matches) > 0 {
 			c := &Context{
 				Bot:     m.Bot,
@@ -35,8 +33,9 @@ func (m *matcher) HandleMessage(message Message) error {
 				Message: message,
 			}
 			h.HandlerFunc(c)
-			continue
+
 		}
+		//continue
 	}
 
 	return nil
