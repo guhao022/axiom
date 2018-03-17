@@ -9,9 +9,9 @@ import (
 
 // 用于实现机器人工作的适配器
 type Adapter interface {
-	Prepare() error              // 初始化
 	GetName() string             // 适配器名称
 	Process() error              // 处理
+	Send(Message, string) error              // 初始化
 	Reply(Message, string) error // 回复
 }
 
