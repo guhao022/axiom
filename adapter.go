@@ -2,13 +2,14 @@
 package axiom
 
 import (
-	"bufio"
 	"os"
 	"strings"
+	"bufio"
 )
 
 // 用于实现机器人工作的适配器
 type Adapter interface {
+	Prepare() error              // 初始化
 	GetName() string             // 适配器名称
 	Process() error              // 处理
 	Reply(Message, string) error // 回复
@@ -27,6 +28,10 @@ func NewShell(bot *Robot) *Shell {
 		name: DEFAULT_NAME,
 		bot:  bot,
 	}
+}
+
+func (s *Shell) Prepare() error {
+	return nil
 }
 
 func (s *Shell) GetName() string {
