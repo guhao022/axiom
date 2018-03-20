@@ -1,10 +1,10 @@
 // 工作平台
-package axiom
+package v1_01
 
 import (
+	"bufio"
 	"os"
 	"strings"
-	"bufio"
 )
 
 // 用于实现机器人工作的适配器

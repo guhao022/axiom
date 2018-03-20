@@ -1,0 +1,10 @@
+*.sublime-*
+.DS_Store
+*.swp
+*.swo
+#*.*#
+.exe
+.idea
+.idea/libraries/Go_SDK.xml
+.idea/vcs.xml
+.env

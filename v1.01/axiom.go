@@ -1,4 +1,4 @@
-package axiom
+package v1_01
 
 import (
 	"errors"
@@ -10,7 +10,6 @@ type Robot struct {
 	adapter  Adapter
 	listener []ListenEvent
 	matcher  Matcher
-
 }
 
 func New(name ...string) *Robot {
@@ -104,4 +103,3 @@ func (b *Robot) Reply(m Message, message string) {
 	}
 
 }
-
