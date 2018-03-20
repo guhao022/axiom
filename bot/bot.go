@@ -7,3 +7,5 @@ type Robot struct {
 	name   string      // 机器人名字
 	logger *logger.Log // 日志
 }
+
+
