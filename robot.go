@@ -27,3 +27,7 @@ func newRobot() *robot {
 
 	return bot
 }
+
+func (bot *robot) SetName(name string) {
+	bot.name = name
+}
