@@ -7,11 +7,13 @@ const (
 	DirectedMessage = "directed-message"
 
 	// 频道信息，主要用于频道广播
-	ChannelMessage  = "channel-message"
+	ChannelMessage = "channel-message"
 )
 
 type Message struct {
-	msgType string
+	msgType   string
 	msg       string
 	err       error
+	preRegex  *regexp.Regexp // 匹配前缀，是否属于命令
+	postRegex *regexp.Regexp // 匹配内容
 }
