@@ -13,7 +13,6 @@ type User struct {
 	Phone             string   `json:"phone"`               // 用户手机号
 	IsBot             bool     `json:"is_bot"`              // 是否是机器人
 	IsAdmin           bool     `json:"is_admin"`            // 是否是管理员
-	IsOwner           bool     `json:"is_owner"`            // 是否是拥有者
 	IsRestricted      bool     `json:"is_restricted"`       // 是否被限制
 	IsUltraRestricted bool     `json:"is_ultra_restricted"` // 是否为超级限制，任何功能都不能使用
 	Online            string   `json:"online"`              // 是否在线

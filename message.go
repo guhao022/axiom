@@ -11,9 +11,10 @@ const (
 )
 
 type Message struct {
-	msgType   string
-	msg       string
-	err       error
+	user      *User          // 消息发送者
+	msg       string         // 消息内容
+	msgType   string         // 消息类型
 	preRegex  *regexp.Regexp // 匹配前缀，是否属于命令
 	postRegex *regexp.Regexp // 匹配内容
+	err       error
 }
