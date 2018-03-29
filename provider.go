@@ -14,6 +14,14 @@ type Provider interface {
 	Error() error
 }
 
+func RegisterProvider(provider Provider) ListenerFunc {
+	return func(bot *Robot) {
+		log.Printf("bot: changing message provider %T\n", provider)
+		bot.providerIn = provider.IncomingChannel()
+		bot.providerOut = provider.OutgoingChannel()
+	}
+}
+
 // 默认实现CLI
 type providerCLI struct {
 	in  chan Message

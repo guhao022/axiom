@@ -13,10 +13,4 @@ type Message struct {
 	Direct       bool
 }
 
-func MessageProvider(provider Provider) ListenerFunc {
-	return func(bot *Robot) {
-		log.Printf("bot: changing message provider %T\n", provider)
-		bot.providerIn = provider.IncomingChannel()
-		bot.providerOut = provider.OutgoingChannel()
-	}
-}
+

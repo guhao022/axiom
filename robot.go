@@ -26,14 +26,21 @@ var processOnce sync.Once
 //
 type ListenerFunc func(*Robot)
 
-func NewBot(name string) *Robot {
+func NewBot(name ...string) *Robot {
+
+	var botName string
+
+	if len(name) == 0 {
+		botName = DefaultRobotName
+	} else {
+		botName = name[0]
+	}
+
 	bot := &Robot{
-		name: name,
+		name: botName,
 		providerIn: make(chan Message),
 		providerOut: make(chan Message),
 	}
-
-	bot.name = name
 
 	return bot
 }
