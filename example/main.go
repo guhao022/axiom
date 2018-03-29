@@ -8,7 +8,6 @@ func main() {
 	axiom.NewBot().Process()
 }
 
-
 var regexRules = []axiom.Rule{
 	{
 		`jump`, `tells the robot to jump`,

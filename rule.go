@@ -1,13 +1,13 @@
 package axiom
 
 import (
-	"log"
 	"bytes"
 	"fmt"
-	"strings"
-	"unicode"
-	"text/template"
+	"log"
 	"regexp"
+	"strings"
+	"text/template"
+	"unicode"
 )
 
 // 解析器

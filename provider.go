@@ -2,11 +2,11 @@ package axiom
 
 import (
 	"bufio"
-	"fmt"
 	"bytes"
-	"text/template"
-	"os"
+	"fmt"
 	"log"
+	"os"
+	"text/template"
 )
 
 type Provider interface {

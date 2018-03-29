@@ -1,10 +1,10 @@
 package axiom
 
 import (
-	"strings"
 	"fmt"
-	"sync"
 	"log"
+	"strings"
+	"sync"
 )
 
 const DefaultRobotName string = `Axiom`
@@ -37,8 +37,8 @@ func NewBot(name ...string) *Robot {
 	}
 
 	bot := &Robot{
-		name: botName,
-		providerIn: make(chan Message),
+		name:        botName,
+		providerIn:  make(chan Message),
 		providerOut: make(chan Message),
 	}
 

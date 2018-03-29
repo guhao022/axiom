@@ -10,5 +10,3 @@ type Message struct {
 	Message      string
 	Direct       bool
 }
-
-
