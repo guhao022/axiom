@@ -65,8 +65,8 @@ func (bot *Robot) Process() {
 				}()
 				for _, rule := range bot.rules {
 					responses := rule.HandleMessage(robot, msg)
-					for _, r := range responses {
-						bot.providerOut <- r
+					for _, resp := range responses {
+						bot.providerOut <- resp
 					}
 				}
 			}(*bot, in)
