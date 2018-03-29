@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"text/template"
 	"os"
+	"log"
 )
 
 type Provider interface {
@@ -43,6 +44,10 @@ func (c *providerCLI) IncomingChannel() chan Message {
 
 func (c *providerCLI) OutgoingChannel() chan Message {
 	return c.out
+}
+
+func (c *providerCLI) Error() error {
+	return nil
 }
 
 func (c *providerCLI) loop() {
