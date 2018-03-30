@@ -16,8 +16,6 @@ type Robot struct {
 	providerOut chan Message
 	rules       []RuleParser
 
-	once sync.Once
-
 	//brain brain.Memorizer
 }
 
