@@ -82,5 +82,5 @@ func processOutMessage(msg Message) string {
 	var finalMsg bytes.Buffer
 	template.Must(template.New("tmpl").Parse(msg.Message)).Execute(&finalMsg, struct{ User string }{msg.ToUserID})
 
-	return fmt.Sprintln("\nout:>", msg.Room, msg.ToUserID, msg.ToUserName, ":", finalMsg.String())
+	return fmt.Sprintln("\n :>", msg.Room, msg.ToUserID, msg.ToUserName, ":", finalMsg.String())
 }
