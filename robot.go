@@ -1,88 +1,177 @@
 package axiom
 
 import (
-	"fmt"
-	"log"
-	"strings"
-	"sync"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
-const DefaultRobotName string = `Axiom`
+const (
+	DefaultRobotName = `Axiom`
+	DefaultRobotAlias = ``
 
-// Robot结构体，包含所有的内部相关数据
+	HEAR    = `HEAR`
+	RESPOND = `RESPOND`
+	TOPIC   = `TOPIC`
+	ENTER   = `ENTER`
+	LEAVE   = `LEAVE`
+)
+
+// Robot receives messages from an adapter and sends them to listeners
 type Robot struct {
-	name        string
-	providerIn  chan Message
-	providerOut chan Message
-	rules       []RuleParser
-
-	//brain brain.Memorizer
+	Name       string
+	Alias      string
+	Adapter    Adapter
+	Store      Store
+	handlers   []handler
+	Users      *UserMap
+	//Auth       *Auth
+	signalChan chan os.Signal
 }
 
-var processOnce sync.Once
-
-//
-type ListenerFunc func(*Robot)
-
-func NewBot(name ...string) *Robot {
-
-	var botName string
-
-	if len(name) == 0 {
-		botName = DefaultRobotName
-	} else {
-		botName = name[0]
-	}
-
-	bot := &Robot{
-		name:        botName,
-		providerIn:  make(chan Message),
-		providerOut: make(chan Message),
-	}
-
-	return bot
+// Handlers returns the robot's handlers
+func (robot *Robot) Handlers() []handler {
+	return robot.handlers
 }
 
-func (bot *Robot) Process() {
-	processOnce.Do(func() {
+// NewRobot returns a new Robot instance
+func NewRobot() (*Robot, error) {
+	robot := &Robot{
+		Name:       DefaultRobotName,
+		signalChan: make(chan os.Signal, 1),
+	}
 
-		for in := range bot.providerIn {
-			if strings.HasPrefix(in.Message, bot.Name()+" help") {
-				go func(robot Robot, msg Message) {
-					helpMsg := fmt.Sprintln("available commands:")
-					for _, rule := range bot.rules {
-						helpMsg = fmt.Sprintln(helpMsg, rule.HelpMessage(robot, in.Room))
-					}
-					bot.providerOut <- Message{
-						Room:       msg.Room,
-						ToUserID:   msg.FromUserID,
-						ToUserName: msg.FromUserName,
-						Message:    helpMsg,
-					}
-				}(*bot, in)
-				continue
-			}
-			go func(robot Robot, msg Message) {
-				defer func() {
-					if r := recover(); r != nil {
-						log.Printf("panic recovered when parsing message: %#v. Panic: %v", msg, r)
-					}
-				}()
-				for _, rule := range bot.rules {
-					responses := rule.HandleMessage(robot, msg)
-					for _, resp := range responses {
-						bot.providerOut <- resp
-					}
-				}
-			}(*bot, in)
+	adapter, err := NewAdapter(robot)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	robot.SetAdapter(adapter)
+
+	store, err := NewStore(robot)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	robot.SetStore(store)
+
+	robot.Users = NewUserMap(robot)
+	//robot.Auth = NewAuth(robot)
+
+	return robot, nil
+}
+
+// Handle registers a new handler with the robot
+func (robot *Robot) Handle(handlers ...interface{}) {
+	for _, h := range handlers {
+		nh, err := NewHandler(h)
+		if err != nil {
+			log.Fatal(err)
+			panic(err)
 		}
-	})
+
+		robot.handlers = append(robot.handlers, nh)
+	}
 }
 
-func (bot *Robot) Name() string {
-	return bot.name
+// Receive dispatches messages to our handlers
+func (robot *Robot) Receive(msg *Message) error {
+	log.Debugf("%s - robot received message", robot.Name)
+
+	// check if we've seen this user yet, and add if we haven't.
+	user := msg.User
+	if _, err := robot.Users.Get(user.ID); err != nil {
+		log.Debug(err)
+		robot.Users.Set(user.ID, user)
+		robot.Users.Save()
+	}
+
+	for _, handler := range robot.handlers {
+		response := NewResponseFromMessage(robot, msg)
+
+		if err := handler.Handle(response); err != nil {
+			log.Error(err)
+			return err
+		}
+	}
+	return nil
 }
 
-func (bot *Robot) MessageProviderOut() chan Message {
-	return bot.providerOut
+// Run initiates the startup process
+func (robot *Robot) Run() error {
+	log.Info("starting robot")
+
+	// HACK
+	log.Debugf("opening %s store connection", robot.Store.Name())
+	go func() {
+		robot.Store.Open()
+
+		log.Debug("loading users from store")
+		robot.Users.Load()
+	}()
+
+	log.Debugf("starting %s adapter", robot.Adapter.Name())
+	go robot.Adapter.Run()
+
+	// Start the HTTP server after the adapter, as adapter.Run() adds additional
+	// handlers to the router.
+	/*log.Debug("starting HTTP server")
+	go func() {
+		if err := http.ListenAndServe(`:9900`, Router); err != nil {
+			log.Debug(err)
+		}
+	}()*/
+
+	signal.Notify(robot.signalChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
+
+	stop := false
+	for !stop {
+		select {
+		case sig := <-robot.signalChan:
+			switch sig {
+			case syscall.SIGINT, syscall.SIGTERM:
+				stop = true
+			}
+		}
+	}
+	// Stop listening for new signals
+	signal.Stop(robot.signalChan)
+
+	// Initiate the shutdown process for our robot
+	robot.Stop()
+
+	return nil
+}
+
+// Stop initiates the shutdown process
+func (robot *Robot) Stop() error {
+	log.Info() // so we don't break up the log formatting when running interactively ;)
+
+	log.Debugf("stopping %s adapter", robot.Adapter.Name())
+	if err := robot.Adapter.Stop(); err != nil {
+		return err
+	}
+
+	log.Debugf("closing %s store connection", robot.Store.Name())
+	if err := robot.Store.Close(); err != nil {
+		return err
+	}
+
+	log.Info("stopping robot")
+	return nil
+}
+
+// SetName sets robot's name
+func (robot *Robot) SetName(name string) {
+	robot.Name = name
+}
+
+// SetAdapter sets robot's adapter
+func (robot *Robot) SetAdapter(adapter Adapter) {
+	robot.Adapter = adapter
+}
+
+// SetStore sets robot's adapter
+func (robot *Robot) SetStore(store Store) {
+	robot.Store = store
 }
