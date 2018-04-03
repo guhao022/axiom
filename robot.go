@@ -115,7 +115,6 @@ func (robot *Robot) Handle(handlers ...interface{}) {
 
 // Receive dispatches messages to our handlers
 func (robot *Robot) Receive(msg *Message) error {
-	log.Printf("%s - robot received message", robot.Name)
 
 	// check if we've seen this user yet, and add if we haven't.
 	user := msg.User

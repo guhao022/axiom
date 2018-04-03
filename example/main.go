@@ -8,7 +8,7 @@ import (
 )
 
 var pingHandler = axiom.Hear(`ping`, func(res *axiom.Response) error {
-	return res.Send("PONG")
+	return res.Reply("PONG")
 })
 
 var echoHandler = axiom.Respond(`echo (.+)`, func(res *axiom.Response) error {
