@@ -151,4 +151,3 @@ func (um *UserMap) Save() error {
 
 	return um.robot.Store.Set("users", data)
 }
-

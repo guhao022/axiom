@@ -1,8 +1,6 @@
 package axiom
 
-import (
-	"fmt"
-)
+import "fmt"
 
 type Store interface {
 	Name() string
@@ -18,7 +16,6 @@ type store struct {
 	newFunc func(*Robot) (Store, error)
 }
 
-// BasicStore struct to be embedded in other stores
 type BasicStore struct {
 	Robot *Robot
 }
@@ -87,4 +84,3 @@ func (m *memory) Delete(key string) error {
 func init() {
 	RegisterStore("memory", NewMemory)
 }
-
