@@ -6,6 +6,7 @@ import (
 	"syscall"
 	"github.com/ArthurHlt/gubot/robot"
 	"fmt"
+	"log"
 )
 
 const (
@@ -103,7 +104,6 @@ func (robot *Robot) Handle(handlers ...interface{}) {
 	for _, h := range handlers {
 		nh, err := NewHandler(h)
 		if err != nil {
-			log.Fatal(err)
 			panic(err)
 		}
 
@@ -113,12 +113,12 @@ func (robot *Robot) Handle(handlers ...interface{}) {
 
 // Receive dispatches messages to our handlers
 func (robot *Robot) Receive(msg *Message) error {
-	log.Debugf("%s - robot received message", robot.Name)
+	log.Printf("%s - robot received message", robot.Name)
 
 	// check if we've seen this user yet, and add if we haven't.
 	user := msg.User
 	if _, err := robot.Users.Get(user.ID); err != nil {
-		log.Debug(err)
+		log.Printf("get user error: %v", err)
 		robot.Users.Set(user.ID, user)
 		robot.Users.Save()
 	}
@@ -127,7 +127,6 @@ func (robot *Robot) Receive(msg *Message) error {
 		response := NewResponseFromMessage(robot, msg)
 
 		if err := handler.Handle(response); err != nil {
-			log.Error(err)
 			return err
 		}
 	}
@@ -136,18 +135,18 @@ func (robot *Robot) Receive(msg *Message) error {
 
 // Run initiates the startup process
 func (robot *Robot) Run() error {
-	log.Info("starting robot")
+	log.Printf("starting robot")
 
 	// HACK
-	log.Debugf("opening %s store connection", robot.Store.Name())
+	log.Printf("opening %s store connection", robot.Store.Name())
 	go func() {
 		robot.Store.Open()
 
-		log.Debug("loading users from store")
+		log.Printf("loading users from store")
 		robot.Users.Load()
 	}()
 
-	log.Debugf("starting %s adapter", robot.Adapter.Name())
+	log.Printf("starting %s adapter", robot.Adapter.Name())
 	go robot.Adapter.Run()
 
 	// Start the HTTP server after the adapter, as adapter.Run() adds additional
@@ -182,19 +181,18 @@ func (robot *Robot) Run() error {
 
 // Stop initiates the shutdown process
 func (robot *Robot) Stop() error {
-	log.Info() // so we don't break up the log formatting when running interactively ;)
 
-	log.Debugf("stopping %s adapter", robot.Adapter.Name())
+	log.Printf("stopping %s adapter", robot.Adapter.Name())
 	if err := robot.Adapter.Stop(); err != nil {
 		return err
 	}
 
-	log.Debugf("closing %s store connection", robot.Store.Name())
+	log.Printf("closing %s store connection", robot.Store.Name())
 	if err := robot.Store.Close(); err != nil {
 		return err
 	}
 
-	log.Info("stopping robot")
+	log.Printf("stopping robot")
 	return nil
 }
 

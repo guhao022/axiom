@@ -6,6 +6,7 @@ import (
 	"bufio"
 	"os"
 	"io"
+	"log"
 )
 
 // Adapter interface
@@ -77,7 +78,7 @@ func (c *cli) Send(res *Response, strings ...string) error {
 	for _, str := range strings {
 		err := c.writeString(str)
 		if err != nil {
-			log.Error("send message error: %v", err)
+			log.Printf("send message error: %v", err)
 			return err
 		}
 	}
@@ -91,7 +92,7 @@ func (c *cli) Reply(res *Response, strings ...string) error {
 		s := res.UserName() + `: ` + str
 		err := c.writeString(s)
 		if err != nil {
-			log.Error("reply message error: %v", err)
+			log.Printf("reply message error: %v", err)
 			return err
 		}
 	}
@@ -133,7 +134,7 @@ func (c *cli) Run() error {
 				if err == io.EOF {
 					break
 				}
-				log.Error("run %s error: %v", cli.Name, err)
+				log.Printf("run %s error: %v", cli.Name, err)
 			}
 			c.Receive(message)
 			prompt()

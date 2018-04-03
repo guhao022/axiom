@@ -71,7 +71,6 @@ func (res *Response) Text() string {
 // Send posts a message back to the chat source
 func (res *Response) Send(strings ...string) error {
 	if err := res.Robot.Adapter.Send(res, strings...); err != nil {
-		log.Error(err)
 		return err
 	}
 	return nil
@@ -80,7 +79,6 @@ func (res *Response) Send(strings ...string) error {
 // Reply posts a message mentioning the current user
 func (res *Response) Reply(strings ...string) error {
 	if err := res.Robot.Adapter.Reply(res, strings...); err != nil {
-		log.Error(err)
 		return err
 	}
 	return nil
@@ -89,7 +87,6 @@ func (res *Response) Reply(strings ...string) error {
 // Emote posts an emote back to the chat source
 func (res *Response) Emote(strings ...string) error {
 	if err := res.Robot.Adapter.Emote(res, strings...); err != nil {
-		log.Error(err)
 		return err
 	}
 	return nil
@@ -98,7 +95,6 @@ func (res *Response) Emote(strings ...string) error {
 // Topic posts a topic changing message
 func (res *Response) Topic(strings ...string) error {
 	if err := res.Robot.Adapter.Topic(res, strings...); err != nil {
-		log.Error(err)
 		return err
 	}
 	return nil
@@ -107,7 +103,6 @@ func (res *Response) Topic(strings ...string) error {
 // Play posts a sound message
 func (res *Response) Play(strings ...string) error {
 	if err := res.Robot.Adapter.Play(res, strings...); err != nil {
-		log.Error(err)
 		return err
 	}
 	return nil
