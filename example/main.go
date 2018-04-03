@@ -5,8 +5,6 @@ import (
 	"log"
 
 	"axiom"
-	_ "axiom/adapter/cli"
-	_ "axiom/store/memory"
 )
 
 var pingHandler = axiom.Hear(`ping`, func(res *axiom.Response) error {

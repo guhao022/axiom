@@ -35,7 +35,7 @@ func (robot *Robot) Handlers() []handler {
 
 // NewRobot returns a new Robot instance
 func NewRobot() (*Robot, error) {
-	name := os.Getenv(`DEFAULT_ROBOT_NAME`)
+	name := `Axiom`
 	robot := &Robot{
 		Name:       name,
 		signalChan: make(chan os.Signal, 1),
@@ -65,7 +65,7 @@ func NewRobot() (*Robot, error) {
 
 func (robot *Robot) newAdapter() (Adapter, error) {
 
-	default_adapter := os.Getenv(`DEFAULT_ADAPTER`)
+	default_adapter := `cli`
 
 	if _, ok := AvailableAdapters[default_adapter]; !ok {
 
@@ -83,7 +83,7 @@ func (robot *Robot) newAdapter() (Adapter, error) {
 
 func (robot *Robot) newStore() (Store, error) {
 
-	name := os.Getenv(`DEFAULT_STORE`)
+	name := `memory`
 
 	if _, ok := Stores[name]; !ok {
 
