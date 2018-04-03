@@ -4,12 +4,13 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"github.com/ArthurHlt/gubot/robot"
 	"fmt"
 	"log"
 )
 
 const (
+	DefaultRobotName = `Axiom`
+
 	HEAR    = `HEAR`
 	RESPOND = `RESPOND`
 	TOPIC   = `TOPIC`
@@ -36,7 +37,7 @@ func (robot *Robot) Handlers() []handler {
 
 // NewRobot returns a new Robot instance
 func NewRobot() (*Robot, error) {
-	name := `Axiom`
+	name := DefaultRobotName
 	robot := &Robot{
 		Name:       name,
 		signalChan: make(chan os.Signal, 1),
@@ -84,14 +85,14 @@ func (robot *Robot) newAdapter() (Adapter, error) {
 
 func (robot *Robot) newStore() (Store, error) {
 
-	name := `memory`
+	default_store := `memory`
 
-	if _, ok := Stores[name]; !ok {
+	if _, ok := Stores[default_store]; !ok {
 
-		return nil, fmt.Errorf("%s is not a registered store", name)
+		return nil, fmt.Errorf("%s is not a registered store", default_store)
 	}
 
-	store, err := Stores[name].newFunc(robot)
+	store, err := Stores[default_store].newFunc(robot)
 
 	if err != nil {
 		return nil, err
