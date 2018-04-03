@@ -4,12 +4,11 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"github.com/ArthurHlt/gubot/robot"
+	"fmt"
 )
 
 const (
-	DefaultRobotName = `Axiom`
-	DefaultRobotAlias = ``
-
 	HEAR    = `HEAR`
 	RESPOND = `RESPOND`
 	TOPIC   = `TOPIC`
@@ -36,29 +35,67 @@ func (robot *Robot) Handlers() []handler {
 
 // NewRobot returns a new Robot instance
 func NewRobot() (*Robot, error) {
+	name := os.Getenv(`DEFAULT_ROBOT_NAME`)
 	robot := &Robot{
-		Name:       DefaultRobotName,
+		Name:       name,
 		signalChan: make(chan os.Signal, 1),
 	}
 
-	adapter, err := NewAdapter(robot)
-	if err != nil {
-		log.Error(err)
-		return nil, err
-	}
-	robot.SetAdapter(adapter)
+	default_adp, err := robot.newAdapter()
 
-	store, err := NewStore(robot)
 	if err != nil {
-		log.Error(err)
 		return nil, err
 	}
-	robot.SetStore(store)
+
+	robot.Adapter = default_adp
+
+	default_store, err := robot.newStore()
+
+	if err != nil {
+		return nil, err
+	}
+
+	robot.Store = default_store
 
 	robot.Users = NewUserMap(robot)
 	//robot.Auth = NewAuth(robot)
 
 	return robot, nil
+}
+
+func (robot *Robot) newAdapter() (Adapter, error) {
+
+	default_adapter := os.Getenv(`DEFAULT_ADAPTER`)
+
+	if _, ok := AvailableAdapters[default_adapter]; !ok {
+
+		return nil, fmt.Errorf("%s is not a registered adapter", default_adapter)
+	}
+
+	adapter, err := AvailableAdapters[default_adapter].newFunc(robot)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return adapter, nil
+}
+
+func (robot *Robot) newStore() (Store, error) {
+
+	name := os.Getenv(`DEFAULT_STORE`)
+
+	if _, ok := Stores[name]; !ok {
+
+		return nil, fmt.Errorf("%s is not a registered store", name)
+	}
+
+	store, err := Stores[name].newFunc(robot)
+
+	if err != nil {
+		return nil, err
+	}
+	return store, nil
 }
 
 // Handle registers a new handler with the robot

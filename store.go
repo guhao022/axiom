@@ -4,11 +4,6 @@ import (
 	"fmt"
 )
 
-const (
-	DefaultStore = `memory`
-)
-
-// Store interface for storage backends to implement
 type Store interface {
 	Name() string
 	Open() error
@@ -28,15 +23,12 @@ type BasicStore struct {
 	Robot *Robot
 }
 
-// SetRobot sets the adapter's Robot
 func (s *BasicStore) SetRobot(r *Robot) {
 	s.Robot = r
 }
 
-// Stores is a map of registered stores
 var Stores = map[string]store{}
 
-// RegisterStore registers a new store
 func RegisterStore(name string, newFunc func(*Robot) (Store, error)) {
 	Stores[name] = store{
 		name:    name,
@@ -44,20 +36,55 @@ func RegisterStore(name string, newFunc func(*Robot) (Store, error)) {
 	}
 }
 
-// NewStore returns an initialized store
-func NewStore(robot *Robot) (Store, error) {
-	name := DefaultStore
-	if _, ok := Stores[name]; !ok {
-		return nil, fmt.Errorf("%s is not a registered store", DefaultStore)
-	}
+// 默认实现 memory
 
-	store, err := Stores[name].newFunc(robot)
-	if err != nil {
-		return nil, err
-	}
-	return store, nil
+type memory struct {
+	BasicStore
+	data map[string][]byte
 }
 
-func (s *BasicStore) String() string {
-	return DefaultStore
+func NewMemory(robot *Robot) (Store, error) {
+	m := &memory{
+		data: map[string][]byte{},
+	}
+	m.SetRobot(robot)
+	return m, nil
 }
+
+func (m *memory) Name() string {
+	return `memory`
+}
+
+func (m *memory) Open() error {
+	return nil
+}
+
+func (m *memory) Close() error {
+	return nil
+}
+
+func (m *memory) Get(key string) ([]byte, error) {
+	if val, ok := m.data[key]; ok {
+		return val, nil
+	}
+
+	return nil, fmt.Errorf("key %s was not found", key)
+}
+
+func (m *memory) Set(key string, data []byte) error {
+	m.data[key] = data
+	return nil
+}
+
+func (m *memory) Delete(key string) error {
+	if _, ok := m.data[key]; !ok {
+		return fmt.Errorf("key %s was not found", key)
+	}
+	delete(m.data, key)
+	return nil
+}
+
+func init() {
+	RegisterStore("memory", NewMemory)
+}
+

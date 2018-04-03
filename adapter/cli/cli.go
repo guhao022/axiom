@@ -1,4 +1,4 @@
-package shell
+package cli
 
 import (
 	"bufio"
@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	axiom.RegisterAdapter("shell", New)
+	axiom.RegisterAdapter("cli", NewCli)
 }
 
 type adapter struct {
@@ -22,7 +22,7 @@ type adapter struct {
 }
 
 // New returns an initialized adapter
-func New(r *axiom.Robot) (axiom.Adapter, error) {
+func NewCli(r *axiom.Robot) (axiom.Adapter, error) {
 	adp := &adapter{
 		out:  bufio.NewWriter(os.Stdout),
 		in:   bufio.NewReader(os.Stdin),
@@ -33,7 +33,7 @@ func New(r *axiom.Robot) (axiom.Adapter, error) {
 }
 
 func (a *adapter) Name() string {
-	return `shell`
+	return `cli`
 }
 
 // Send sends a regular response
@@ -96,7 +96,6 @@ func (a *adapter) Run() error {
 			if err != nil {
 				if err == io.EOF {
 					break
-					// a.Robot.signalChan <- syscall.SIGTERM
 				}
 				fmt.Println("error:", err)
 			}
@@ -119,12 +118,11 @@ func prompt() {
 	fmt.Print("> ")
 }
 
-// func newMessage(text string) *Message {
 func (a *adapter) newMessage(text string) *axiom.Message {
 	return &axiom.Message{
 		ID:   "local-message",
-		User: axiom.User{ID: "1", Name: "shell"},
-		Room: "shell",
+		User: axiom.User{ID: "1", Name: "cli"},
+		Room: "cli",
 		Text: text,
 	}
 }
@@ -142,3 +140,4 @@ func (a *adapter) writeString(str string) error {
 
 	return nil
 }
+

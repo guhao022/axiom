@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"axiom"
-	_ "axiom/adapter/shell"
+	_ "axiom/adapter/cli"
 	_ "axiom/store/memory"
 )
 
