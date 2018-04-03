@@ -134,7 +134,7 @@ func (c *cli) Run() error {
 				if err == io.EOF {
 					break
 				}
-				log.Printf("run %s error: %v", cli.Name, err)
+				log.Printf("run %s error: %v", c.Name(), err)
 			}
 			c.Receive(message)
 			prompt()
@@ -176,4 +176,8 @@ func (c *cli) writeString(str string) error {
 	}
 
 	return nil
+}
+
+func init() {
+	RegisterAdapter(`cli`, NewCli)
 }

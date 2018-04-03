@@ -10,6 +10,7 @@ import (
 
 const (
 	DefaultRobotName = `Axiom`
+	DefaultRobotAlias = ``
 
 	HEAR    = `HEAR`
 	RESPOND = `RESPOND`

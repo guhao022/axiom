@@ -119,24 +119,3 @@ func (h *FullHandler) Handle(res *Response) error {
 	}
 }
 
-
-type ping struct{}
-
-func (p *ping) Method() string {
-	return RESPOND
-}
-
-func (p *ping) Usage() string {
-	return `ping - responds with "PONG"`
-}
-
-func (p *ping) Pattern() string {
-	return `(?i)ping`
-}
-
-func (p *ping) Run(res *Response) error {
-	return res.Send("PONG")
-}
-
-// Ping exports
-var Ping = &ping{}
