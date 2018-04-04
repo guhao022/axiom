@@ -91,7 +91,6 @@ func (c *cli) Reply(res *Response, strings ...string) error {
 }
 
 func (c *cli) Run() error {
-	prompt()
 
 	go func() {
 		for {
@@ -100,10 +99,6 @@ func (c *cli) Run() error {
 
 			line := scanner.Text()
 			line = strings.TrimSpace(line)
-
-			if line == "quit" || line == "q" || line == "exit" {
-				os.Stdout.WriteString("GoodBye!")
-			}
 
 			msg := &Message{
 				ID:   "local-message",
@@ -115,6 +110,7 @@ func (c *cli) Run() error {
 			c.Receive(msg)
 
 			prompt()
+			continue
 		}
 	}()
 
