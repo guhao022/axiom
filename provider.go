@@ -36,11 +36,11 @@ func NewProvider(robot *Robot) (Provider, error) {
 		return nil, fmt.Errorf("%s is not a registered provider", default_provider)
 	}
 
-	adapter, err := availableProviders[default_provider](robot)
+	provider, err := availableProviders[default_provider](robot)
 	if err != nil {
 		return nil, err
 	}
-	return adapter, nil
+	return provider, nil
 }
 
 type cli struct {

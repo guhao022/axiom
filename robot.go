@@ -1,6 +1,9 @@
 package axiom
 
-import "os"
+import (
+	"os"
+	"log"
+)
 
 const (
 	DefaultRobotName = `Axiom`
@@ -21,13 +24,20 @@ func New() (*Robot, error) {
 		signalChan: make(chan os.Signal, 1),
 	}
 
-	default_adp, err := robot.newAdapter()
+	default_provider, err := NewProvider(robot)
 
 	if err != nil {
 		return nil, err
 	}
 
-	robot.Adapter = default_adp
+	robot.provider = default_provider
+
+	store, err := NewStore(robot)
+
+	if err != nil {
+		return nil, err
+	}
+	robot.SetStore(store)
 
 	return robot, nil
 }

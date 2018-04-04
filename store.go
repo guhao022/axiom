@@ -11,11 +11,6 @@ type Store interface {
 	Delete(string) error
 }
 
-type store struct {
-	name    string
-	newFunc func(*Robot) (Store, error)
-}
-
 type BasicStore struct {
 	Robot *Robot
 }
@@ -24,13 +19,27 @@ func (s *BasicStore) SetRobot(r *Robot) {
 	s.Robot = r
 }
 
-var Stores = map[string]store{}
+var availableStores map[string]func(*Robot) (Store, error)
 
-func RegisterStore(name string, newFunc func(*Robot) (Store, error)) {
-	Stores[name] = store{
-		name:    name,
-		newFunc: newFunc,
+func NewStore(robot *Robot) (Store, error) {
+
+	default_store := `memory`
+
+	if _, ok := availableStores[default_store]; !ok {
+
+		return nil, fmt.Errorf("%s is not a registered store", default_store)
 	}
+
+	store, err := availableStores[default_store](robot)
+
+	if err != nil {
+		return nil, err
+	}
+	return store, nil
+}
+
+func RegisterStore(name string, f func(*Robot) (Store, error)) {
+	availableStores[name] = f
 }
 
 // 默认实现 memory
