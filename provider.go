@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"log"
 )
 
 type Provider interface {
@@ -12,8 +13,9 @@ type Provider interface {
 	Run() error
 	Close() error
 
-	IncomingChannel() chan Message
-	OutgoingChannel() chan Message
+	Receive(*Message) error
+	Send(*Response, ...string) error
+	Reply(*Response, ...string) error
 }
 
 var availableProviders map[string]func(*Robot) (Provider, error)
@@ -45,16 +47,13 @@ func NewProvider(robot *Robot) (Provider, error) {
 
 type cli struct {
 	BasicProvider
-	in     chan Message
-	out    chan Message
+	in chan Message
 	quit   chan bool
 	writer *bufio.Writer
 }
 
 func NewCli(r *Robot) (Provider, error) {
 	c := &cli{
-		out:    make(chan Message),
-		in:     make(chan Message),
 		quit:   make(chan bool),
 		writer: bufio.NewWriter(os.Stdout),
 	}
@@ -66,12 +65,29 @@ func (c *cli) Name() string {
 	return `cli`
 }
 
-func (c *cli) IncomingChannel() chan Message {
-	return c.in
+func (c *cli) Send(res *Response, strings ...string) error {
+	for _, str := range strings {
+		err := c.writeString(str)
+		if err != nil {
+			log.Printf("send message error: %v", err)
+			return err
+		}
+	}
+
+	return nil
 }
 
-func (c *cli) OutgoingChannel() chan Message {
-	return c.out
+func (c *cli) Reply(res *Response, strings ...string) error {
+	for _, str := range strings {
+		s := res.UserName() + `: ` + str
+		err := c.writeString(s)
+		if err != nil {
+			log.Printf("reply message error: %v", err)
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (c *cli) Run() error {
