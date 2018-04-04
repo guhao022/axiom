@@ -89,7 +89,7 @@ func (c *cli) Run() error {
 				}
 			}
 
-			//c.Receive(message)
+			c.Receive(<-c.in)
 			prompt()
 		}
 	}()

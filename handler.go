@@ -5,7 +5,7 @@ import (
 )
 
 type handler interface {
-	Handle(message string) error
+	Handle(res *Response) error
 }
 
 func handlerMatch(r *regexp.Regexp, text string) bool {

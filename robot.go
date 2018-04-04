@@ -3,6 +3,7 @@ package axiom
 import (
 	"os"
 	"log"
+	"os/user"
 )
 
 const (
@@ -13,6 +14,7 @@ type Robot struct {
 	name       string
 	provider   Provider
 	store      Store
+
 	handlers   []handler
 	users      *UserMap
 	signalChan chan os.Signal
@@ -37,19 +39,17 @@ func New() (*Robot, error) {
 	if err != nil {
 		return nil, err
 	}
-	robot.SetStore(store)
-
+	robot.store = store
 	return robot, nil
 }
 
-func (robot *Robot) Receive(msg *Message) error {
+func (robot *Robot) Receive(msg Message) error {
 
-	// check if we've seen this user yet, and add if we haven't.
 	user := msg.User
-	if _, err := robot.Users.Get(user.ID); err != nil {
+	if _, err := robot.users.Get(user.ID); err != nil {
 		log.Printf("get user error: %v", err)
-		robot.Users.Set(user.ID, user)
-		robot.Users.Save()
+		robot.users.Set(user.ID, user)
+		robot.users.Save()
 	}
 
 	for _, handler := range robot.handlers {
