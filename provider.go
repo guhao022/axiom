@@ -18,7 +18,7 @@ type Provider interface {
 	Reply(*Response, ...string) error
 }
 
-var availableProviders map[string]func(*Robot) (Provider, error)
+var availableProviders = make(map[string]func(*Robot) (Provider, error))
 
 func RegisterProvider(name string, f func(*Robot) (Provider, error)) {
 	availableProviders[name] = f
@@ -33,6 +33,7 @@ func (a *BasicProvider) SetRobot(r *Robot) {
 }
 
 func NewProvider(robot *Robot) (Provider, error) {
+
 	default_provider := `cli`
 	if _, ok := availableProviders[default_provider]; !ok {
 		return nil, fmt.Errorf("%s is not a registered provider", default_provider)
@@ -47,7 +48,6 @@ func NewProvider(robot *Robot) (Provider, error) {
 
 type cli struct {
 	BasicProvider
-	in chan Message
 	quit   chan bool
 	writer *bufio.Writer
 }
@@ -96,20 +96,23 @@ func (c *cli) Run() error {
 	go func() {
 		for {
 			scanner := bufio.NewScanner(os.Stdin)
-			for scanner.Scan() {
-				c.in <- Message{
-					ID:   "local-message",
-					User: User{ID: "1", Name: "cli"},
-					Room: "cli",
-					Text: scanner.Text(),
-				}
+			scanner.Scan()
 
-				msg := <-c.in
+			line := scanner.Text()
+			line = strings.TrimSpace(line)
 
-				c.Receive(&msg)
+			if line == "quit" || line == "q" || line == "exit" {
+				os.Stdout.WriteString("GoodBye!")
 			}
 
-			prompt()
+			msg := &Message{
+				ID:   "local-message",
+				User: User{ID: "1", Name: "cli"},
+				Room: "cli",
+				Text: scanner.Text(),
+			}
+
+			c.Receive(msg)
 		}
 	}()
 

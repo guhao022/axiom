@@ -19,7 +19,7 @@ func (s *BasicStore) SetRobot(r *Robot) {
 	s.Robot = r
 }
 
-var availableStores map[string]func(*Robot) (Store, error)
+var availableStores = make(map[string]func(*Robot) (Store, error))
 
 func NewStore(robot *Robot) (Store, error) {
 

@@ -35,12 +35,15 @@ func New() (*Robot, error) {
 
 	robot.provider = default_provider
 
-	store, err := NewStore(robot)
+	default_store, err := NewStore(robot)
 
 	if err != nil {
 		return nil, err
 	}
-	robot.store = store
+	robot.store = default_store
+
+	robot.users = NewUserMap(robot)
+
 	return robot, nil
 }
 
@@ -94,7 +97,7 @@ func (robot *Robot) Handle(handlers ...handler) {
 	}
 }
 
-func (robot *Robot) Run() error {
+func (robot *Robot) Run() {
 	log.Printf("starting robot")
 
 	log.Printf("opening %s store connection", robot.store.Name())
@@ -124,8 +127,6 @@ func (robot *Robot) Run() error {
 	signal.Stop(robot.signalChan)
 
 	robot.Stop()
-
-	return nil
 }
 
 func (robot *Robot) Stop() error {
