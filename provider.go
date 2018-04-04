@@ -87,9 +87,12 @@ func (c *cli) Run() error {
 					Room: "cli",
 					Text: scanner.Text(),
 				}
+
+				msg := <-c.in
+
+				c.Receive(&msg)
 			}
 
-			c.Receive(<-c.in)
 			prompt()
 		}
 	}()
