@@ -7,8 +7,7 @@ type Response struct {
 	Match    []string
 }
 
-// NewResponseFromMessage returns a new Response object with an associated Message
-func NewResponseFromMessage(robot *Robot, msg *Message) *Response {
+func NewResponse(robot *Robot, msg *Message) *Response {
 	return &Response{
 		Robot: robot,
 		Message: msg,
@@ -30,4 +29,18 @@ func (res *Response) UserID() string {
 
 func (res *Response) UserName() string {
 	return res.Message.User.Name
+}
+
+func (res *Response) Send(strings ...string) error {
+	if err := res.Robot.Provider().Send(res, strings...); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (res *Response) Reply(strings ...string) error {
+	if err := res.Robot.Provider().Reply(res, strings...); err != nil {
+		return err
+	}
+	return nil
 }

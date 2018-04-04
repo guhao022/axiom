@@ -56,6 +56,10 @@ func (robot *Robot) SetProvider(p Provider) {
 	robot.provider = p
 }
 
+func (robot *Robot) Provider() Provider {
+	return robot.provider
+}
+
 func (robot *Robot) SetStore(store Store) {
 	robot.store = store
 }
@@ -74,7 +78,7 @@ func (robot *Robot) Receive(msg *Message) error {
 	}
 
 	for _, handler := range robot.handlers {
-		response := NewResponseFromMessage(robot, msg)
+		response := NewResponse(robot, msg)
 
 		if err := handler.Handle(response); err != nil {
 			return err
