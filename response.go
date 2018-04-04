@@ -19,3 +19,11 @@ func (res *Response) Text() string {
 
 	return res.Message.Text
 }
+
+func (res *Response) Room() string {
+	return res.Message.Room
+}
+
+func (res *Response) UserID() string {
+	return res.Message.User.ID
+}

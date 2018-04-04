@@ -113,7 +113,7 @@ func (um *UserMap) Encode() ([]byte, error) {
 
 // Decode unmarshals a JSON object into a map of strings to Users
 func (um *UserMap) Decode() (map[string]User, error) {
-	data, err := um.robot.Store.Get("users")
+	data, err := um.robot.store.Get("users")
 	if err != nil {
 		return nil, err
 	}
@@ -149,5 +149,5 @@ func (um *UserMap) Save() error {
 		return err
 	}
 
-	return um.robot.Store.Set("users", data)
+	return um.robot.store.Set("users", data)
 }
