@@ -1,9 +1,9 @@
 package main
 
 import (
-	"os"
 	"axiom"
 	"log"
+	"os"
 )
 
 func run() int {
@@ -14,9 +14,19 @@ func run() int {
 	}
 
 	tableFlipHandler := &axiom.Handler{
-		Pattern: `tableflip`,
+		Pattern: `tableflip|tt`,
 		Run: func(res *axiom.Response) error {
-			return res.Send(`(╯°□°）╯︵ ┻━┻`)
+			err := res.Send(`(╯°□°）╯︵ ┻━┻`)
+			if err != nil {
+				return err
+			}
+
+			err = res.Send(`dsadasdasdas`)
+			if err != nil {
+				return err
+			}
+
+			return nil
 		},
 	}
 

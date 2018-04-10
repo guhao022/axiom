@@ -1,8 +1,8 @@
 package axiom
 
 import (
-	"os"
 	"log"
+	"os"
 	"os/signal"
 	"syscall"
 )
@@ -12,9 +12,10 @@ const (
 )
 
 type Robot struct {
-	name       string
-	provider   Provider
-	store      Store
+	name     string
+	alias    string
+	provider Provider
+	store    Store
 
 	handlers   []handler
 	users      *UserMap
@@ -45,6 +46,10 @@ func New() (*Robot, error) {
 	robot.users = NewUserMap(robot)
 
 	return robot, nil
+}
+
+func (robot *Robot) SetAlias(alias string) {
+	robot.alias = alias
 }
 
 func (robot *Robot) SetName(name string) {

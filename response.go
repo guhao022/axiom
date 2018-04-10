@@ -2,14 +2,14 @@ package axiom
 
 // Response struct
 type Response struct {
-	Robot    *Robot
-	Message  *Message
-	Match    []string
+	Robot   *Robot
+	Message *Message
+	Match   []string
 }
 
 func NewResponse(robot *Robot, msg *Message) *Response {
 	return &Response{
-		Robot: robot,
+		Robot:   robot,
 		Message: msg,
 	}
 }

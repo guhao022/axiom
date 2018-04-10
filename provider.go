@@ -3,9 +3,9 @@ package axiom
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strings"
-	"log"
 )
 
 type Provider interface {
