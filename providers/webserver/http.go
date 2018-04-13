@@ -3,6 +3,7 @@ package webserver
 import "github.com/num5/axiom"
 
 type webserver struct {
+	//
 }
 
 func (w *webserver) Name() string {
