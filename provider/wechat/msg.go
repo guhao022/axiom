@@ -3,6 +3,7 @@ package wechat
 import (
 	"github.com/num5/axiom"
 	"fmt"
+	"github.com/KevinGong2013/wechat"
 )
 
 type axiomMsg struct {
@@ -10,10 +11,15 @@ type axiomMsg struct {
 	to string
 }
 
-func NewAxiomMsg(msg *axiom.Message, to string) *axiomMsg {
+func NewAxiomMsg(wmsg wechat.EventMsgData) *axiomMsg {
+
+	msg := &axiom.Message{
+		Text: wmsg.Content,
+	}
+
 	return &axiomMsg{
 		msg,
-		to,
+		wmsg.FromUserName,
 	}
 }
 

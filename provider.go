@@ -66,8 +66,7 @@ func (c *cli) Name() string {
 }
 
 func (c *cli) Receive(msg *Message) error {
-	c.Robot.Receive(msg)
-	return nil
+	return c.Robot.Receive(msg)
 }
 
 func (c *cli) Send(res *Response, strings ...string) error {

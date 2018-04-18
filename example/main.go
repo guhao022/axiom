@@ -4,6 +4,7 @@ import (
 	"axiom"
 	"log"
 	"os"
+	_ "axiom/provider/wechat"
 )
 
 func run() int {

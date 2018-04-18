@@ -14,7 +14,7 @@ type weixin struct {
 	wechat *wechat.WeChat
 }
 
-func newWeChat(r *axiom.Robot) *weixin {
+func newWeChat(r *axiom.Robot) (axiom.Provider, error) {
 	wx := new(weixin)
 
 	wx.SetRobot(r)
@@ -30,7 +30,7 @@ func newWeChat(r *axiom.Robot) *weixin {
 
 	wx.wechat = wc
 
-	return wx
+	return wx, nil
 }
 
 func (wx *weixin) Name() string {
@@ -41,13 +41,6 @@ func (wx *weixin) Run() error {
 	wx.wechat.Handle(`/login`, func(evt wechat.Event) {
 		isSuccess := evt.Data.(int) == 1
 		if isSuccess {
-			contact := evt.Data.(wechat.EventContactData)
-			err := wx.setUsers(contact.Contact)
-
-			if err != nil {
-				log.Errorf(`设置用户失败，%v`, err)
-			}
-
 			log.Info(`登录成功......`)
 		} else {
 			log.Error(`登录失败......`)
@@ -56,15 +49,42 @@ func (wx *weixin) Run() error {
 
 	// 私聊
 	wx.wechat.Handle(`/msg/solo`, func(evt wechat.Event) {
-		data := evt.Data.(wechat.EventMsgData)
-		fmt.Println(`/msg/solo/` + data.Content)
+		wmsg := evt.Data.(wechat.EventMsgData)
+
+		msg := &axiom.Message{
+			FromUser: wx.newUsers(wx.wechat.ContactByUserName(wmsg.FromUserName)),
+			Text: wmsg.Content,
+		}
+
+		err := wx.Receive(msg)
+
+		if err != nil {
+			log.Errorf(`receive msg error: %v`, err)
+		}
+
 	})
 
 	// 微信群
 	wx.wechat.Handle(`/msg/group`, func(evt wechat.Event) {
-		data := evt.Data.(wechat.EventMsgData)
-		fmt.Println(`/msg/group/` + data.Content)
+		wmsg := evt.Data.(wechat.EventMsgData)
+
+		if wmsg.AtMe {
+
+			msg := &axiom.Message{
+				FromUser: wx.newUsers(wx.wechat.ContactByUserName(wmsg.FromUserName)),
+				Text: wmsg.Content,
+			}
+
+			err := wx.Receive(msg)
+
+			if err != nil {
+				log.Errorf(`receive msg error: %v`, err)
+			}
+		}
+
 	})
+
+	wx.wechat.Go()
 
 	return nil
 }
@@ -73,9 +93,18 @@ func (wx *weixin) Close() error {
 	return nil
 }
 
+func (wx *weixin) Receive(msg *axiom.Message) error {
+
+	return wx.bot.Receive(msg)
+}
+
 func (wx *weixin) Send(res *axiom.Response, strings ...string) error {
 	for _, str := range strings {
-		//
+		err := wx.wechat.SendTextMsg(str, res.FromUserName())
+
+		if err != nil {
+			log.Errorf(`Send msg error: %v`, err)
+		}
 	}
 
 	return nil
@@ -83,25 +112,17 @@ func (wx *weixin) Send(res *axiom.Response, strings ...string) error {
 
 func (wx *weixin) Reply(res *axiom.Response, strings ...string) error {
 	for _, str := range strings {
-		// 私聊
-		wx.wechat.Handle(`/msg/solo`, func(evt wechat.Event) {
-			msg := evt.Data.(wechat.EventMsgData)
+		err := wx.wechat.SendTextMsg(str, res.FromUserName())
 
-
-
-		})
-
-		// 微信群
-		wx.wechat.Handle(`/msg/group`, func(evt wechat.Event) {
-			data := evt.Data.(wechat.EventMsgData)
-			fmt.Println(`/msg/group/` + data.Content)
-		})
+		if err != nil {
+			log.Errorf(`Send msg error: %v`, err)
+		}
 	}
 
 	return nil
 }
 
-func (wx *weixin) setUsers(un wechat.Contact) error {
+func (wx *weixin) newUsers(un *wechat.Contact) axiom.User {
 	var user axiom.User
 	user.ID = un.UserName
 	user.Name = un.NickName
@@ -124,11 +145,7 @@ func (wx *weixin) setUsers(un wechat.Contact) error {
 		"MemberList": un.MemberList,
 	}
 
-	return wx.users.Set(un.UserName, user)
-}
-
-func (wx *weixin) sendMsg(content string) {
-
+	return user
 }
 
 func (wx *weixin) chatRoomMember(room_name string) (map[string]int, error) {
@@ -164,4 +181,8 @@ func (wx *weixin) chatRoomMember(room_name string) (map[string]int, error) {
 	}
 
 	return stats, nil
+}
+
+func init() {
+	axiom.RegisterProvider(`wechat`, newWeChat)
 }
