@@ -3,8 +3,6 @@ package wechat
 import (
 	"github.com/num5/axiom"
 	"github.com/KevinGong2013/wechat"
-	"github.com/ArthurHlt/gubot/robot"
-	"fmt"
 )
 
 type weixin struct {
