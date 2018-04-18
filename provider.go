@@ -107,7 +107,7 @@ func (c *cli) Run() error {
 
 			msg := &Message{
 				ID:   "local-message",
-				User: User{ID: "1", Name: "cli"},
+				FromUser: User{ID: "1", Name: "cli"},
 				Room: "cli",
 				Text: scanner.Text(),
 			}

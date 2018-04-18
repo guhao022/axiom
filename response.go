@@ -23,12 +23,20 @@ func (res *Response) Room() string {
 	return res.Message.Room
 }
 
-func (res *Response) UserID() string {
-	return res.Message.User.ID
+func (res *Response) FromUser() string {
+	return res.Message.FromUser.ID
 }
 
-func (res *Response) UserName() string {
-	return res.Message.User.Name
+func (res *Response) FromUserName() string {
+	return res.Message.FromUser.Name
+}
+
+func (res *Response) ToUser() string {
+	return res.Message.ToUser.ID
+}
+
+func (res *Response) ToUserName() string {
+	return res.Message.ToUser.Name
 }
 
 func (res *Response) Send(strings ...string) error {
