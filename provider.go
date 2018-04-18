@@ -144,7 +144,3 @@ func (c *cli) writeString(str string) error {
 
 	return nil
 }
-
-func init() {
-	RegisterProvider(`cli`, NewCli)
-}
