@@ -2,7 +2,8 @@ package axiom
 
 type Message struct {
 	ID   string
-	User User
+	FromUser User
+	ToUser	User
 	Room string
 	Text string
 }

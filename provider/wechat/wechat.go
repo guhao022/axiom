@@ -54,7 +54,7 @@ func (wx *weixin) Run() error {
 		}
 	})
 
-	// 单独相处
+	// 私聊
 	wx.wechat.Handle(`/msg/solo`, func(evt wechat.Event) {
 		data := evt.Data.(wechat.EventMsgData)
 		fmt.Println(`/msg/solo/` + data.Content)
@@ -75,7 +75,7 @@ func (wx *weixin) Close() error {
 
 func (wx *weixin) Send(res *axiom.Response, strings ...string) error {
 	for _, str := range strings {
-		err := wx.wechat.SendMsg()
+		//
 	}
 
 	return nil
@@ -113,6 +113,21 @@ func (wx *weixin) setUsers(un wechat.Contact) error {
 	}
 
 	return wx.users.Set(un.UserName, user)
+}
+
+func (wx *weixin) sendMsg(content string) {
+	// 私聊
+	wx.wechat.Handle(`/msg/solo`, func(evt wechat.Event) {
+		msg := evt.Data.(wechat.EventMsgData)
+
+
+	})
+
+	// 微信群
+	wx.wechat.Handle(`/msg/group`, func(evt wechat.Event) {
+		data := evt.Data.(wechat.EventMsgData)
+		fmt.Println(`/msg/group/` + data.Content)
+	})
 }
 
 func (wx *weixin) chatRoomMember(room_name string) (map[string]int, error) {

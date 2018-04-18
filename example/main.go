@@ -21,7 +21,7 @@ func run() int {
 				return err
 			}
 
-			err = res.Send(`dsadasdasdas`)
+			err = res.Send(`dsadasdasdas`,`aaaaaa`,`bbbbbbb`)
 			if err != nil {
 				return err
 			}
