@@ -82,9 +82,21 @@ func (wx *weixin) Send(res *axiom.Response, strings ...string) error {
 }
 
 func (wx *weixin) Reply(res *axiom.Response, strings ...string) error {
-	/*for _, str := range strings {
-		//
-	}*/
+	for _, str := range strings {
+		// 私聊
+		wx.wechat.Handle(`/msg/solo`, func(evt wechat.Event) {
+			msg := evt.Data.(wechat.EventMsgData)
+
+
+
+		})
+
+		// 微信群
+		wx.wechat.Handle(`/msg/group`, func(evt wechat.Event) {
+			data := evt.Data.(wechat.EventMsgData)
+			fmt.Println(`/msg/group/` + data.Content)
+		})
+	}
 
 	return nil
 }
@@ -116,18 +128,7 @@ func (wx *weixin) setUsers(un wechat.Contact) error {
 }
 
 func (wx *weixin) sendMsg(content string) {
-	// 私聊
-	wx.wechat.Handle(`/msg/solo`, func(evt wechat.Event) {
-		msg := evt.Data.(wechat.EventMsgData)
 
-
-	})
-
-	// 微信群
-	wx.wechat.Handle(`/msg/group`, func(evt wechat.Event) {
-		data := evt.Data.(wechat.EventMsgData)
-		fmt.Println(`/msg/group/` + data.Content)
-	})
 }
 
 func (wx *weixin) chatRoomMember(room_name string) (map[string]int, error) {

@@ -84,7 +84,7 @@ func (c *cli) Send(res *Response, strings ...string) error {
 
 func (c *cli) Reply(res *Response, strings ...string) error {
 	for _, str := range strings {
-		s := res.UserName() + `: ` + str
+		s := res.FromUserName() + `: ` + str
 		err := c.writeString(s)
 		if err != nil {
 			log.Printf("reply message error: %v", err)
