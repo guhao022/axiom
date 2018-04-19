@@ -86,12 +86,12 @@ func (robot *Robot) Handlers() []handler {
 
 func (robot *Robot) Receive(msg *Message) error {
 
-	user := msg.FromUser
+	/*user := msg.FromUser
 	if _, err := robot.users.Get(user.ID); err != nil {
 		log.Printf("get user error: %v", err)
 		robot.users.Set(user.ID, user)
 		robot.users.Save()
-	}
+	}*/
 
 	for _, handler := range robot.handlers {
 		response := NewResponse(robot, msg)
