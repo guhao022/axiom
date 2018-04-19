@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"fmt"
 )
 
 const (
@@ -60,8 +61,16 @@ func (robot *Robot) GetName() string {
 	return robot.name
 }
 
-func (robot *Robot) SetProvider(p Provider) {
-	robot.provider = p
+func (robot *Robot) SetProvider(pname string) {
+	if _, ok := availableProviders[pname]; !ok {
+		log.Printf("%s is not a registered provider", pname)
+	}
+
+	provider, err := availableProviders[pname](robot)
+	if err != nil {
+		panic(err)
+	}
+	robot.provider = provider
 }
 
 func (robot *Robot) Provider() Provider {

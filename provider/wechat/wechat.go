@@ -12,7 +12,7 @@ type weixin struct {
 	wechat *wechat.WeChat
 }
 
-func newWeChat(r *axiom.Robot) (axiom.Provider, error) {
+func NewWeChat(r *axiom.Robot) (axiom.Provider, error) {
 	wx := new(weixin)
 
 	wx.SetRobot(r)
@@ -182,5 +182,5 @@ func (wx *weixin) chatRoomMember(room_name string) (map[string]int, error) {
 }
 
 func init() {
-	axiom.RegisterProvider(`wechat`, newWeChat)
+	axiom.RegisterProvider(`wechat`, NewWeChat)
 }

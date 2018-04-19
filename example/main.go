@@ -4,7 +4,7 @@ import (
 	"axiom"
 	"log"
 	"os"
-	_ "axiom/provider/wechat"
+	"axiom/provider/wechat"
 )
 
 func run() int {
@@ -43,6 +43,10 @@ func run() int {
 			},
 		},
 	)
+
+	provider, err := wechat.NewWeChat(robot)
+
+	robot.SetProvider(provider)
 
 	robot.Run()
 
