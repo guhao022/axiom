@@ -1,10 +1,10 @@
 package main
 
 import (
-	"axiom"
+	"github.com/num5/axiom"
 	"log"
 	"os"
-	"axiom/provider/wechat"
+	_ "axiom/provider/wechat"
 )
 
 func run() int {
@@ -44,9 +44,7 @@ func run() int {
 		},
 	)
 
-	provider, err := wechat.NewWeChat(robot)
-
-	robot.SetProvider(provider)
+	robot.SetProvider(`wechat`)
 
 	robot.Run()
 
